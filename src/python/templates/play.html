@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">    
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/icons/16x16.png') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}" />
+    <title>Dart-App: Game</title>
+</head>
+    <body>
+        {% include 'header.html' %}
+        <div class="play">
+            <form action="/new_game" method="post">
+                <h2 class="form" >Game Type</h2>
+                <div class="game-type">
+                    <input class="game-type" type="radio" id="1001" name="game-type" value="1001">
+                    <label class="game-type" for="1001">1001</label>
+                    <input class="game-type" type="radio" id="701" name="game-type" value="701">
+                    <label class="game-type" for="701">701</label>
+                    <input class="game-type" type="radio" id="501" name="game-type" value="501" checked>
+                    <label class="game-type" for="501">501</label>
+                    <input class="game-type" type="radio" id="301" name="game-type" value="301">
+                    <label class="game-type" for="301">301</label>
+                    <input class="game-type" type="radio" id="121" name="game-type" value="121">
+                    <label class="game-type" for="121">121</label>
+                    <input class="game-type" type="radio" id="101" name="game-type" value="101">
+                    <label class="game-type" for="101">101</label>
+                </div>
+                <label class="form" for="legs">Legs</label>
+                <select class="form" name="legs" id="legs" required>
+                    <optgroup label="No of Legs:">
+                        <option class="form" value="1" selected>1</option>
+                        <option class="form" value="2">2</option>
+                        <option class="form" value="3">3</option>
+                        <option class="form" value="4">4</option>
+                        <option class="form" value="5">5</option>
+                        <option class="form" value="6">6</option>
+                        <option class="form" value="7">7</option>
+                    </optgroup>
+                </select>
+                <label class="form" for="player1name">Player 1:</label>
+                <input class="form" type="text" id="player1name" name="player1name" required>
+                <label class="form" for="player2name">Player 2:</label>
+                <input class="form" type="text" id="player2name" name="player2name" required>
+                <input class="form" type="submit" value="Play">
+            </form>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/icons/16x16.png') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}" />
+    <title>Dart App: New Game</title>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="players">
+        <div class="player-box">
+            <h3>Player A</h3>
+            <p><span>{{ playerA }} </span>: <span id="playerA">0</span></p>
+        </div>
+        <div class="player-box">
+            <h3>Player B</h3>
+            <p><span>{{ playerB }} </span>: <span id="playerB">0</span></p>
+        </div>
+    </div>
+
+    <div class="throws">     
+        <p>Total: <span id="total" class="total">0</span></p>
+        <p>Throw 1: <span id="throw1">-</span></p>
+        <p>Throw 2: <span id="throw2">-</span></p>
+        <p>Throw 3: <span id="throw3">-</span></p>
+    </div>
+
+    <div class="dart-board">
+        <h2>Dart Board</h2>
+        <button onclick="toggleView()">Switch to Picture</button>
+        <button onclick="selectField('Undo')">Undo⏪</button>
+        <button onclick="selectField('Next')">Next⏩</button>
+        <div id="button-view">
+            <div>
+                <button id="double" onclick="selectField('Double', this)">Double</button>
+                <button id="triple" onclick="selectField('Triple', this)">Triple</button>
+                <button onclick="handleScore(0)">Miss</button>
+            </div>
+            <div class="score_fields">
+                <div>
+                    <button onclick="handleScore(1)">1</button>
+                    <button onclick="handleScore(2)">2</button>
+                    <button onclick="handleScore(3)">3</button>
+                    <button onclick="handleScore(4)">4</button>
+                    <button onclick="handleScore(5)">5</button>
+                    <button onclick="handleScore(6)">6</button>
+                    <button onclick="handleScore(7)">7</button>
+                    <button onclick="handleScore(8)">8</button>
+                    <button onclick="handleScore(9)">9</button>
+                    <button onclick="handleScore(10)">10</button>
+                    <button onclick="handleScore(11)">11</button>
+                    <button onclick="handleScore(12)">12</button>
+                    <button onclick="handleScore(13)">13</button>
+                    <button onclick="handleScore(14)">14</button>
+                    <button onclick="handleScore(15)">15</button>
+                    <button onclick="handleScore(16)">16</button>
+                    <button onclick="handleScore(17)">17</button>
+                    <button onclick="handleScore(18)">18</button>
+                    <button onclick="handleScore(19)">19</button>
+                    <button onclick="handleScore(20)">20</button>
+                    <button onclick="handleScore(25)">25</button>
+                </div>
+            </div>
+        </div>
+        <div id="picture-view" style="display: none;">
+            <img src="{{ url_for('static', filename='images/dartboard.png') }}" alt="Dartboard">
+        </div>
+    </div>
+
+    <script>
+    let currentThrow = 1;
+    let multiplier = 1;
+
+    function selectField(type, button) {
+        // Reset all button styles
+        document.getElementById('double').style.backgroundColor = '';
+        document.getElementById('triple').style.backgroundColor = '';
+        
+        if (type === 'Double') {
+            multiplier = button.style.backgroundColor ? 1 : 2;
+            button.style.backgroundColor = multiplier === 2 ? '#ff7a18' : '';
+        } else if (type === 'Triple') {
+            multiplier = button.style.backgroundColor ? 1 : 3;
+            button.style.backgroundColor = multiplier === 3 ? '#ff7a18' : '';
+        }
+    }
+
+    function handleScore(score) {
+        if (currentThrow <= 3) {
+            fetch('/throw?' + new URLSearchParams({
+                throwNumber: currentThrow,
+                score: score,
+                multiplier: multiplier
+            }))
+            .then(response => response.json())
+            .then(data => {
+                // Update the throw display
+                document.getElementById('throw' + currentThrow).textContent = data.displayScore;
+                document.getElementById('total').textContent = data.total;
+                
+                if (data.isRoundComplete) {
+                    currentThrow = 1;
+                } else {
+                    currentThrow++;
+                }
+                
+                // Reset multiplier
+                multiplier = 1;
+                document.getElementById('double').style.backgroundColor = '';
+                document.getElementById('triple').style.backgroundColor = '';
+            });
+        }
+    }
+    </script>
+
+</body>
+</html>
