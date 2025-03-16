@@ -3,7 +3,7 @@ import gamedata
 
 # Shared thread references, currently not clear why needed
 adminRef = None
-gameRef = None
+gameRef = gamedata.Game()
 lockRef = None
 
 # Add session storage for throws and multiplier
@@ -21,7 +21,7 @@ def play():
 @app.route("/board-status")
 def boardstatus():
     return render_template("board-status.html")
-
+ 
 # Route when Play-button get pressed
 @app.route("/new_game", methods=["POST"])
 def new_game():
@@ -29,15 +29,17 @@ def new_game():
     first_to = int(request.form['legs'])
     playerA = request.form['player1name']
     playerB = request.form['player2name']
+    # Initialize new game with player names and format
+    gameRef.start_game(first_to, format, playerA, playerB)
     return redirect('/game/'+playerA+'/'+playerB+'/'+str(format)+'/'+str(first_to))
 
 # Route bevore new_game starts
 @app.route('/game/<playerA>/<playerB>/<format>/<first_to>')
 def game(playerA, playerB, format, first_to):
-    # not sure why these are not working
-    # a_wins = gameRef.players[0].wins
-    # b_wins = gameRef.players[1].wins
-    return render_template('game.html', playerA=playerA, playerB=playerB, total=format)
+    format = int(format)
+    scores = gameRef.get_totals()
+    return render_template('game.html', playerA=playerA, playerB=playerB, format=format, 
+                         scoreA=scores[0], scoreB=scores[1])
 
 # Route for handling throws
 @app.route("/throw")
@@ -46,30 +48,39 @@ def handle_throw():
     base_score = int(request.args.get('score', 0))
     multiplier = int(request.args.get('multiplier', 1))
     
-    # Calculate final score with multiplier
-    final_score = base_score * multiplier
+    # Create a dart object
+    dart = gamedata.Dart(base_score, multiplier, None)  # Position is None as we don't use camera
     
-    # Store the throw
-    current_throws[throw_number] = final_score
+    # Try to make the throw
+    gameRef.dart(dart)
     
-    # Calculate running total
-    current_total = sum(current_throws.values())
+    # Get updated game state
+    scores = gameRef.get_totals()
+    current_throws = gameRef.get_scores()
+    current_player_throws = current_throws[gameRef.current_leg.player_index]
     
-    # Prepare display score (e.g., "2×20" for double 20)
+    # Check if player has won
+    just_won, winner_index = gameRef.has_just_won()
+    
+    # Prepare display score
     display_score = f"{multiplier}×{base_score}" if multiplier > 1 else str(base_score)
-    
-    # If this was the third throw, reset for next round
-    is_round_complete = throw_number == 3
-    if is_round_complete:
-        current_throws.update({1: 0, 2: 0, 3: 0})
     
     return jsonify({
         "received": base_score,
         "multiplier": multiplier,
         "displayScore": display_score,
-        "total": current_total,
-        "isRoundComplete": is_round_complete
+        "scoreA": scores[0],
+        "scoreB": scores[1],
+        "currentThrows": current_player_throws,
+        "isRoundComplete": gameRef.current_leg.change,
+        "justWon": just_won,
+        "winnerIndex": winner_index if just_won else -1
     })
+
+@app.route("/undo")
+def undo_throw():
+    # TODO: Implement undo functionality
+    return jsonify({"success": True})
 
 if __name__=="__main__":
     app.run(port=5000,debug=True)
