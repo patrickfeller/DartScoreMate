@@ -4,21 +4,65 @@
     box-sizing: border-box;
 }
 
+h1, h2, h3, h4, h5, h6, p, label, input, select, li, button {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: fit-content;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+nav h2 {
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+    transition: color 0.3s ease;
+}
+
+nav h2:hover {
+    color: #ff7a18;
+    text-decoration: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #ff7a18, #af002d, #3205c2);
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+header {
+    background-color: transparent;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    overflow: hidden;
+}
+
+nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
 }
 
 .container {
+    margin-top: 80px;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     height: 100%;
+    padding: 30px;
 }
 
 .box {
@@ -30,13 +74,223 @@ body {
     transition: all 0.3s ease;
 }
 
+
 h1 {
-    color: #ffff;
-    font-size: 3.5em;
-    margin-right: 20px;
+    color: #000;
+    font-size: 2.5em;
+    margin: 0;
 }
 
 p {
     color: #a0a0a0;
+    font-size: 1.2em;
+}
+
+.camera_status {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    padding-top: 1em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.cam_item {
+    flex: 1 1 33.33%;
+    padding: 10px;
+    margin: 0;
+    max-width: 33.33%;
+    max-height: 50vh;
+}
+
+img.cam-status {
+    border: 2px solid black;
+    padding: 10px;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+h2.cam-status {
+    padding-bottom: 0.5em;
+    color: #ffffff;
+    display: inline-block;
+}
+
+.cam_settings {
+    flex: 1 1 100%;
+    padding: 10px;
+    margin: 0;
+    max-width: 100%;
+    max-height: 50vh;
+}
+
+.play {
+    background-color: #282C34;
+    color: white;
+    display: block;
+    width: fit-content;
+    padding: 2em;
+    padding-bottom: 0.5em;
+    margin: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 2em;
+}
+
+.divider {
+    border-right: 4px solid rgb(146, 146, 146);
+    padding: 0 10px;
+    margin: 0 5px;
+    height: auto;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+div.game-type {
+    background-color: transparent;
+    border-radius: 0.5em;
+    margin-bottom: 0.5em;
+    border-color: white;
+    border-style: solid;
+    border-width: 1px;
+}
+
+input.game-type {
+    display: none;
+}
+
+label.game-type {
+    padding: 0.5em 0.5em;
+    color: rgb(255, 255, 255);
+    display: inline-block;
+}
+
+input.game-type:checked+label {
+    background-color: #b15616;
+    border-radius: 0.5em;
+}
+
+.form {
+    margin: 0 0 0.5em 0;
+    display: block;
+}
+
+input.form, select.form {
+    padding: 0.5em;
+    border-radius: 0.5em;
+    border: none;
+}
+
+label.form {
+    margin: 0 0 0.5em 0;
+}
+
+.players {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.players {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 80px; /* Adjust this value if needed */
+}
+
+.player-box {
+    background: #ffffff;
+    padding: 5px;
+    border-radius: 10px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: all 0.3s ease;
+    flex: 1 1 200px;
+    max-width: 600px;
+}
+
+.player-box.active {
+    border: 5px solid #ff7a18;
+    box-shadow: 0 0 20px rgba(255, 122, 24, 0.6);
+    transform: scale(1.05);
+    background-color: #ff7a18;
+}
+
+.player-box.active h3,
+.player-box.active p {
+    color: white;
+}
+
+.player-box h3 {
+    color: #666;
+    font-size: 1em;
+    margin-bottom: 10px;
+}
+
+.player-box p {
+    color: #000;
+    font-size: 4em;
+}
+
+.dart-board {
+    margin: 20px;
+    padding: 10px;
+    border: 1px solid #000;
+}
+
+.dart-board button {
+    margin: 5px;
+    flex: 1 1 22%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #000;
+    background: #ffffff;
+    font-size: 1.5em;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dart-board button:hover {
+    background-color: #ff7a18;
+    color: #ffffff;
+}
+
+.throws {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.throws p {
+    display: inline-block;
+    margin: 10px;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: all 0.3s ease;
+    flex: 1 1 22%;
+    box-sizing: border-box;
+}
+
+.throws .round-sum {
+    background: #f0f0f0;
+    font-weight: bold;
+    border: 2px solid #ff7a18;
+}
+
+.throws .round-sum #round-sum {
+    color: #ff7a18;
     font-size: 1.2em;
 }
