@@ -2,13 +2,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# copy the contents to /app 
+# copy project contents to /app 
 COPY . /app
 
-# install all required packages
-RUN pip install --upgrade pip 
+# install all required packages with uv
+RUN pip install --upgrade pip && pip install uv
 
-RUN pip install -r src/python/requirements.txt
+RUN uv pip compile pyproject.toml -o requirements.txt
+RUN pip install -r requirements.txt
 
 EXPOSE 5000
 

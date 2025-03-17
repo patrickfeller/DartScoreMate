@@ -1,0 +1,10 @@
+[project]
+name = "dartscore_mate"
+version = "0.1.0"
+requires-pyton = ">=3.11"
+dependencies = [
+    "numpy",
+    "Flask>=3.0",
+    "enum34",
+    "gunicorn"
+]
