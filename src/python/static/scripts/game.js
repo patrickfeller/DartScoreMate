@@ -28,19 +28,23 @@ function updateDisplay(data) {
         
         // Add to sum if it's a valid throw
         if (throwValue && throwValue !== '-' && throwValue !== 'BUST') {
-            // For multiplied scores (e.g., "2×20")
-            if (throwValue.includes('×')) {
-                const [multiplier, score] = throwValue.split('×');
-                roundSum += parseInt(multiplier) * parseInt(score);
+            // Handle prefixed scores (S5, D20, T20)
+            if (throwValue.startsWith('S')) {
+                roundSum += parseInt(throwValue.substring(1));
+            } else if (throwValue.startsWith('D')) {
+                roundSum += parseInt(throwValue.substring(1)) * 2;
+            } else if (throwValue.startsWith('T')) {
+                roundSum += parseInt(throwValue.substring(1)) * 3;
             } else {
-                // For regular scores
-                roundSum += parseInt(throwValue) || 0;
+                // For regular scores without prefix
+                roundSum += parseInt(throwValue);
             }
         }
     }
     
-    // Update round sum
-    document.getElementById('round-sum').textContent = roundSum || 0;
+    // Update round sum with the calculated total
+    const roundSumElement = document.getElementById('round-sum');
+    roundSumElement.textContent = roundSum;
     
     // Handle round completion
     if (currentThrow === 3 && !isCountdownActive) {
@@ -49,7 +53,7 @@ function updateDisplay(data) {
         for (let i = 1; i <= 3; i++) {
             lastThrows[i-1] = document.getElementById('throw' + i).textContent;
         }
-        const lastRoundSum = document.getElementById('round-sum').textContent;
+        const lastRoundSum = roundSum; // Store the actual calculated sum
 
         // Start countdown
         if (isCountdownActive) return; // Prevent multiple countdowns
@@ -133,6 +137,8 @@ function selectField(type, button) {
                     multiplier = 1;
                     document.getElementById('double').style.backgroundColor = '';
                     document.getElementById('triple').style.backgroundColor = '';
+                    // Re-enable bull button
+                    document.getElementById('bull-button').disabled = false;
                 }
             });
         return;
@@ -150,6 +156,8 @@ function selectField(type, button) {
     // Reset all button styles
     document.getElementById('double').style.backgroundColor = '';
     document.getElementById('triple').style.backgroundColor = '';
+    // Re-enable bull button
+    document.getElementById('bull-button').disabled = false;
     
     if (type === 'Double') {
         multiplier = button.style.backgroundColor ? 1 : 2;
@@ -157,11 +165,23 @@ function selectField(type, button) {
     } else if (type === 'Triple') {
         multiplier = button.style.backgroundColor ? 1 : 3;
         button.style.backgroundColor = multiplier === 3 ? '#ff7a18' : '';
+        // Disable bull button when triple is selected
+        document.getElementById('bull-button').disabled = multiplier === 3;
     }
 }
 
 function handleScore(score) {
     if (currentThrow <= 3) {
+        // Special handling for bullseye (25)
+        if (score === 25) {
+            // If double is selected, score 50 instead of 25
+            if (multiplier === 2) {
+                score = 50;
+                multiplier = 1; // Reset multiplier after applying
+                document.getElementById('double').style.backgroundColor = '';
+            }
+        }
+        
         fetch('/throw?' + new URLSearchParams({
             throwNumber: currentThrow,
             score: score,
