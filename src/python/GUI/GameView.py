@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, jsonify
+import Game
 import gamedata
 
 # Shared thread references, currently not clear why needed
 adminRef = None
-gameRef = gamedata.Game()
+gameRef = Game.Game()
 lockRef = None
 
 # Add session storage for throws and multiplier
@@ -82,5 +83,12 @@ def undo_throw():
     # TODO: Implement undo functionality
     return jsonify({"success": True})
 
-if __name__=="__main__":
-    app.run(port=5000,debug=True)
+
+# Start/Open the Webgui
+def start_webgui(threadHandler, gameController, game):
+    global adminRef, gameRef, lockRef
+    adminRef = gameController
+    gameRef = game
+    lockRef = threadHandler
+
+    app.run(port=5000,debug=True, use_reloader = False)
