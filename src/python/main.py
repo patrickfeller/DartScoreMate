@@ -54,6 +54,7 @@ def handle_throw():
     # Try to make the throw
     gameRef.dart(dart)
     
+    
     # Get updated game state
     scores = gameRef.get_totals()
     current_throws = gameRef.get_scores()
