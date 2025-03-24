@@ -294,3 +294,16 @@ label.form {
     color: #ff7a18;
     font-size: 1.2em;
 }
+
+.countdown-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(54, 52, 52, 0.8);
+    color: white;
+    padding: 20px 40px;
+    border-radius: 10px;
+    font-size: 24px;
+    z-index: 1000;
+}
