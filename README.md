@@ -1,6 +1,20 @@
 # DartScoreMate_Softwareentwicklung2
+<details>
+  <summary>Click to expand</summary>
 
-**THIS README STILL NEEDS TO BE WRITTEN OUT**: Sections might include Project Description, Explaination of Key Concepts, Links to Frameworks/important packages, ..
+  **THIS README STILL NEEDS TO BE WRITTEN OUT**: Sections might include Project Description, Explanation of Key Concepts, Links to Frameworks/important packages, ..
+
+  1. **Header** – short introduction + table of contents  
+  2. **Project description and motivation**  
+  3. **Required apps/packages/frameworks** (and in our case, hardware components)  
+  4. **Guide on how to start the app**  
+  5. **Explanation of test cases** that are incorporated in GitLab and how to use them (linked issues 11)  
+  6. **Introduction of key app concepts** (e.g., the image detection algorithm if we have it ready) with URLs to further resources  
+  7. **Introduction of project members** – their skills and tasks in the project  
+  8. **Project status**  
+
+</details>
+
 
 We want to build a Dart Score web-app, which measures a dart player's current score in real-time 
 and based on the collected score data gives suggestions for the next "moves" of a player in order to get the highest possible score. 
@@ -54,4 +68,6 @@ Patrick Feller, Chris Lehmann, Kathrin Lindauer, Ana Orkić, Daniel Hillebrand
 
 ## Project status
 project kickoff phase, past meeting 2025-03-10 6pm via TeamsTeams: *Meeting ID* 364 250 302 261, *Password* wu7Ui9TC)
-Next meeting: 2025-03-17 6pm via TeamsTeam 
+previous meeting: 2025-03-17 6pm via TeamsTeam 
+
+Next meeting: 2025-03-24 6pm via Teams
