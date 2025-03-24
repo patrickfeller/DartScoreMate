@@ -78,7 +78,19 @@ class Turn:
             return False
         
         return len(self.darts) >= 3 or self.darts[-1].is_bust()
-
+    
+    def undo_last_dart(self):
+        if self.darts:
+            last_dart = self.darts.pop()
+            if not last_dart.is_bust():
+                self.player.undo_dart(last_dart)
+            else:
+                # If it was a bust, restore all previous darts
+                for dart in self.darts:
+                    self.player.dart(dart)
+            return last_dart
+        return None
+    
 class Leg:
     def __init__(self, players, current_player):
         self.current_turn = Turn(players[current_player])
@@ -88,6 +100,7 @@ class Leg:
         self.current_player = self.players[current_player]
         self.player_index = current_player
         self.change = False
+        self.last_completed_throws = ['-', '-', '-']  # Add this line
     
     def dart(self, dart):
         if not self.current_player.is_bust(dart):
@@ -97,6 +110,7 @@ class Leg:
             self.current_turn.bust(dart)
 
         if self.current_turn.is_over():
+            self.last_completed_throws = self.current_turn.display()
             self.changeover()
 
     def get_last_turn(self, player):
@@ -112,6 +126,18 @@ class Leg:
         self.current_turn = Turn(self.current_player)
         self.turns.append(self.current_turn)
         self.change = True
+    
+    def undo_last_dart(self):
+        if self.current_turn.darts: # If there are darts in current turn
+            return self.current_turn.undo_last_dart()
+        elif len(self.turns) > 1: # Or if we can go back to previous turn
+            # If current turn is empty, go back to previous turn
+            self.turns.pop()  # Remove current empty turn
+            self.current_turn = self.turns[-1]
+            self.current_player = self.current_turn.player
+            self.player_index = self.players.index(self.current_player)
+            return self.current_turn.undo_last_dart()
+        return None
 
 class Player:
     def __init__(self, name, format):
@@ -150,6 +176,7 @@ class Game:
         self.new_positions = []
         self.playing = False
         self.update = False
+        self.current_leg = None
 
     def start_game(self, first_to, format, name_a, name_b):
         self.first_to = first_to
@@ -178,11 +205,10 @@ class Game:
                 self.just_won = True
     
     def get_scores(self):
-        if self.playing == True:
-            return [self.current_leg.get_last_turn(self.players[0]), self.current_leg.get_last_turn(self.players[1])]
-        else:
-            return -1
-        
+        if self.playing and self.current_leg:
+            return self.current_leg.current_turn.display()
+        return ['-', '-', '-']
+    
     def get_wins(self):
         if self.playing == True:
             return [self.players[0].wins, self.players[1].wins]
@@ -238,3 +264,14 @@ class Game:
     def reset(self):
         for player in self.players:
             player.reset()
+
+    def undo_last_dart(self):
+        if self.playing: # First condition: game must be active
+            result = self.current_leg.undo_last_dart() # Delegates to Leg class
+            if result:
+                # Remove the last position if it exists
+                if self.positions:
+                    self.positions.pop()
+                self.update = True
+                return True
+        return False
