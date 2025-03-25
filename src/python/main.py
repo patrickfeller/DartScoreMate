@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, redirect, jsonify
+from flask import Flask, render_template, request, redirect, jsonify, Response
 import gamedata
+import camera_handling
 
 # Shared thread references, currently not clear why needed
 adminRef = None
@@ -20,7 +21,27 @@ def play():
 # Main page for the game
 @app.route("/board-status")
 def boardstatus():
-    return render_template("board-status.html")
+    cam = camera_handling.camera()
+    available_cameras = cam.get_available_cameras()    
+    return render_template("board-status.html", cameras = available_cameras)
+
+# Convert still camera frames to video
+def gen(camID):
+    while True:
+        data = adminRef.frames[camID]        
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n'
+               b'\r\n' + data + b'\r\n')
+
+@app.route("/video/<camID>")
+def video(camID):
+    camID = int(camID)
+    cam = adminRef.frames[camID] is not None
+    if cam:
+        return Response(gen(camID), mimetype='multipart/x-mixed-replace; boundary=frame')
+    else:
+       return ""   
+
  
 # Route when Play-button get pressed
 @app.route("/new_game", methods=["POST"])
