@@ -1,7 +1,9 @@
-let currentThrow = 1;
-let multiplier = 1;
+let currentThrow = 0; // 0 for no throws, 1-3 for current throw number
+let multiplier = 1; // 1 for single, 2 for double, 3 for triple
 let currentPlayer = 0; // 0 for Player A, 1 for Player B
 let isCountdownActive = false; // Track if countdown is active
+let action = '';
+let lastThrows = [];
 
 // Update the UI to show current player's turn
 function updatePlayerTurn() {
@@ -16,15 +18,25 @@ function updatePlayerTurn() {
 
 // Update scores and throws display
 function updateDisplay(data) {
-    // Update scores
-    document.getElementById("playerA_score").textContent = data.scoreA;
-    document.getElementById("playerB_score").textContent = data.scoreB;
+    const playerAScore = document.getElementById("playerA_score");
+    const playerBScore = document.getElementById("playerB_score");
+    
+    if (!playerAScore || !playerBScore) {
+        console.error("Score elements not found in DOM:", {
+            playerAExists: !!playerAScore,
+            playerBExists: !!playerBScore
+        });
+    }
+    
+    if (playerAScore) playerAScore.textContent = data.scoreA;
+    if (playerBScore) playerBScore.textContent = data.scoreB;
     
     // Update throws and calculate sum
     let roundSum = 0;
     for (let i = 0; i < 3; i++) {
         const throwValue = data.currentThrows[i];
         document.getElementById('throw' + (i + 1)).textContent = throwValue || '-';
+        console.log("throwValue:", throwValue);
         
         // Add to sum if it's a valid throw
         if (throwValue && throwValue !== '-' && throwValue !== 'BUST') {
@@ -41,18 +53,17 @@ function updateDisplay(data) {
             }
         }
     }
-    
-    // Update round sum with the calculated total
+
+
+    // Update round sum
     const roundSumElement = document.getElementById('round-sum');
-    roundSumElement.textContent = roundSum;
-    
+    if (roundSumElement) {
+        roundSumElement.textContent = roundSum;
+    }
+
     // Handle round completion
     if (currentThrow === 3 && !isCountdownActive) {
-        // Store the current values before starting countdown
-        const lastThrows = [];
-        for (let i = 1; i <= 3; i++) {
-            lastThrows[i-1] = document.getElementById('throw' + i).textContent;
-        }
+        console.log(currentThrow)
         const lastRoundSum = roundSum; // Store the actual calculated sum
 
         // Start countdown
@@ -66,30 +77,14 @@ function updateDisplay(data) {
         // Create and show countdown element
         const countdown = document.createElement('div');
         countdown.id = 'countdown';
-        countdown.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(54, 52, 52, 0.8);
-            color: white;
-            padding: 20px 40px;
-            border-radius: 10px;
-            font-size: 24px;
-            z-index: 1000;
-        `;
+        countdown.classList.add('countdown-overlay');
         document.body.appendChild(countdown);
         
-        // Start 10 second countdown
-        let timeLeft = 10;
+        // Start 5 second countdown
+        let timeLeft = 5;
         const countdownInterval = setInterval(() => {
             countdown.textContent = `Next player in ${timeLeft} seconds...`;
             // Keep showing the last throws during countdown - not working
-            for (let i = 1; i <= 3; i++) {
-                document.getElementById('throw' + i).textContent = lastThrows[i-1];
-            }
-            document.getElementById('round-sum').textContent = lastRoundSum;
-            
             timeLeft--;
             
             if (timeLeft < 0) {
@@ -104,17 +99,14 @@ function updateDisplay(data) {
                 }
                 
                 // Switch to next player
-                currentThrow = 1;
+                currentThrow = 0;
+                console.log(currentThrow)
                 currentPlayer = (currentPlayer + 1) % 2;
                 updatePlayerTurn();
                 isCountdownActive = false;
             }
         }, 1000);
-    } else if (!isCountdownActive) {
-        // Normal throw increment
-        currentThrow++;
-    }
-    
+    } else     
     // Handle win condition
     if (data.justWon) {
         const winner = data.winderIndex === 0 ? 'Player A' : 'Player B';
@@ -126,30 +118,26 @@ function updateDisplay(data) {
     }
 }
 
+
 function selectField(type, button) {
     if (type === 'Undo') {
-        fetch('/undo')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    if (currentThrow > 1) currentThrow--;
-                    // Reset multiplier
-                    multiplier = 1;
-                    document.getElementById('double').style.backgroundColor = '';
-                    document.getElementById('triple').style.backgroundColor = '';
-                    // Re-enable bull button
-                    document.getElementById('bull-button').disabled = false;
-                }
-            });
-        return;
-    }
-    
-    if (type === 'Next') {
-        if (currentThrow < 3) {
-            alert('Please complete your three throws first!');
-            return;
-        }
-        // The countdown will start automatically after the third throw
+        fetch('/undo_throw', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Data Undo:", data);
+            if (data.success) {
+                currentThrow--;
+                console.log(currentThrow);
+                // Update the displays
+                updateDisplay(data);
+                // updateTotals(data.totals);
+            } else {
+                console.error(data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error));
         return;
     }
     
@@ -171,31 +159,35 @@ function selectField(type, button) {
 }
 
 function handleScore(score) {
+    // Change the condition to check if currentThrow is less than 3
     if (currentThrow <= 3) {
-        // Special handling for bullseye (25)
-        if (score === 25) {
-            // If double is selected, score 50 instead of 25
-            if (multiplier === 2) {
-                score = 50;
-                multiplier = 1; // Reset multiplier after applying
-                document.getElementById('double').style.backgroundColor = '';
-            }
-        }
-        
+        // Increment currentThrow before making the throw
+        currentThrow++;
+        console.log(currentThrow)        
+        // Send data to server
         fetch('/throw?' + new URLSearchParams({
             throwNumber: currentThrow,
             score: score,
             multiplier: multiplier
         }))
+        // receive response from server with updated data
         .then(response => response.json())
         .then(data => {
             updateDisplay(data);
-            
+            console.log(data);
+            if (data.isRoundComplete === false) {
+                lastThrows.push(data.currentThrows);
+            } else {
+                lastThrows = [];
+            }
+            console.log(lastThrows);
             // Reset multiplier
             multiplier = 1;
             document.getElementById('double').style.backgroundColor = '';
             document.getElementById('triple').style.backgroundColor = '';
         });
+    } else {
+        alert('You have already made three throws. Please click Next.');
     }
 }
 
@@ -203,3 +195,11 @@ function handleScore(score) {
 document.addEventListener('DOMContentLoaded', function() {
     updatePlayerTurn();
 });
+
+// Update total scores for both players with undo functionality
+// TODO: should be moved into updateDisplay
+// function updateTotals(totals) {
+    
+//     document.getElementById('playerA_score').textContent = totals[0];
+//     document.getElementById('playerB_score').textContent = totals[1];
+// }
