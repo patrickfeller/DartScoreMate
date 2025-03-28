@@ -309,7 +309,6 @@ label.form {
     font-size: 1.2em;
 }
 
-<<<<<<< HEAD:src/python/static/styles.css
 .cam_item select {
     width: 100%;
     padding: 8px;
@@ -355,7 +354,18 @@ label.form {
     border-color: #3205c2;
     box-shadow: 0 0 5px rgba(50, 5, 194, 0.5);
 }
-
+.countdown-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(54, 52, 52, 0.8);
+    color: white;
+    padding: 20px 40px;
+    border-radius: 10px;
+    font-size: 24px;
+    z-index: 1000;
+}
 /* Media queries for responsive layout */
 @media screen and (max-width: 768px) {
     .camera_status {
@@ -372,17 +382,4 @@ label.form {
         width: 100%;
         margin: 10px;
     }
-=======
-.countdown-overlay {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(54, 52, 52, 0.8);
-    color: white;
-    padding: 20px 40px;
-    border-radius: 10px;
-    font-size: 24px;
-    z-index: 1000;
->>>>>>> c658ae6e4bebfbe1cca4df6294103e59c5837da1:src/flask_app/static/styles.css
 }
