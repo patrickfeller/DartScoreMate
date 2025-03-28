@@ -90,45 +90,59 @@ p {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 0;
+    justify-content: space-around;
+    align-items: flex-start;
+    gap: 20px;
     width: 100%;
-    padding-top: 1em;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    padding: 80px 20px 20px 20px; /* Top padding for header */
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
 }
 
 .cam_item {
-    flex: 1 1 33.33%;
-    padding: 10px;
-    margin: 0;
-    max-width: 33.33%;
-    max-height: 50vh;
+    flex: 1 1 300px; /* Base width of 300px but can grow/shrink */
+    max-width: 600px;
+    min-width: 250px;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    z-index: 2;
+}
+
+.cam-status {
+    width: 100%;
+    margin-bottom: 10px;
 }
 
 img.cam-status {
     border: 2px solid black;
     padding: 10px;
-    margin: 0;
     width: 100%;
-    height: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: contain;
 }
 
 h2.cam-status {
-    padding-bottom: 0.5em;
     color: #ffffff;
-    display: inline-block;
+    text-align: center;
+    margin-bottom: 10px;
 }
 
 .cam_settings {
     flex: 1 1 100%;
-    padding: 10px;
-    margin: 0;
-    max-width: 100%;
-    max-height: 50vh;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2;
 }
 
 .play {
@@ -295,6 +309,51 @@ label.form {
     font-size: 1.2em;
 }
 
+.cam_item select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    border: 2px solid #ff7a18;
+    border-radius: 5px;
+    background-color: white;
+    color: #000;
+    font-size: 1em;
+    cursor: pointer;
+    z-index: 1001;  /* Ensure it's above other elements */
+}
+
+.cam_item select:hover {
+    border-color: #af002d;
+}
+
+.cam_item select:focus {
+    outline: none;
+    border-color: #3205c2;
+    box-shadow: 0 0 5px rgba(50, 5, 194, 0.5);
+}
+
+.cam_settings select {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border: 2px solid #ff7a18;
+    border-radius: 5px;
+    background-color: white;
+    color: #000;
+    font-size: 1em;
+    cursor: pointer;
+    z-index: 3;
+}
+
+.cam_settings select:hover {
+    border-color: #af002d;
+}
+
+.cam_settings select:focus {
+    outline: none;
+    border-color: #3205c2;
+    box-shadow: 0 0 5px rgba(50, 5, 194, 0.5);
+}
 .countdown-overlay {
     position: fixed;
     top: 50%;
@@ -306,4 +365,21 @@ label.form {
     border-radius: 10px;
     font-size: 24px;
     z-index: 1000;
+}
+/* Media queries for responsive layout */
+@media screen and (max-width: 768px) {
+    .camera_status {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .cam_item {
+        max-width: 100%;
+        min-width: unset;
+    }
+
+    .cam_settings {
+        width: 100%;
+        margin: 10px;
+    }
 }
