@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, jsonify, Response
 import gamedata
-import flask_app.camera_handling as camera_handling
+import camera_handling
 import cv2 
 
 # Shared thread references, currently not clear why needed
@@ -111,8 +111,6 @@ def handle_throw():
 # Route to undo the last dart throw, if possible
 @app.route("/undo_throw", methods=["POST"])
 def undo_throw():
-<<<<<<< HEAD:src/python/main.py
-=======
     if gameRef.undo_last_dart():
         scores = gameRef.get_totals()
         return jsonify({
@@ -126,7 +124,6 @@ def undo_throw():
 @app.route("/next")
 def next_player():
     # TODO: Implement next functionality, if needed
->>>>>>> c658ae6e4bebfbe1cca4df6294103e59c5837da1:src/flask_app/main.py
     return jsonify({"success": True})
 
 if __name__=="__main__":
