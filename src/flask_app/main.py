@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, jsonify, Response
 import gamedata
-import camera_handling
+import flask_app.camera_handling as camera_handling
 import cv2 
 
 # Shared thread references, currently not clear why needed
