@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, jsonify
 import gamedata
 
+
 # Shared thread references, currently not clear why needed
 adminRef = None
 gameRef = gamedata.Game()
