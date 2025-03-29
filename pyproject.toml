@@ -7,6 +7,8 @@ dependencies = [
     "Flask>=3.0",
     "enum34",
     "gunicorn",
-    "opencv-python",
     "streamlit>=1.4",
+    "opencv-python",
+    "python-dotenv>=1.0.0",
+    "groq>=0.4.0",
 ]
