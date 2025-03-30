@@ -1,4 +1,15 @@
-# DartScoreMate_Softwareentwicklung2
+
+
+
+## DartScoreMate
+
+<a href="#Tab1">ReadMe</a> | 
+<a href="#Tab2">Team Charter</a> | 
+
+
+<div id="tab1" class="tabcontent">
+  <h3>Einführung</h3>
+  <p># DartScoreMate_Softwareentwicklung2
 <details>
   <summary>Click to expand</summary>
 
@@ -26,6 +37,8 @@ A user interface which displays current score and suggested further throws
 
 
 **Features of V1:**
+<details>
+  <summary>Click to expand</summary>
 
 Create Users
 Track Score
@@ -40,8 +53,23 @@ User-Login
 Detect Score from Image
 Personalized Shot Recommendations
 
+</details>
+
+## Current Status
+✅ [flask environment ](https://gitlab.web.fh-kufstein.ac.at/hillebranddaniel/dartscoremate_softwareentwicklung2/-/blob/main/src/python/main.py?ref_type=heads)
+
+
+✅ [docker file](https://gitlab.web.fh-kufstein.ac.at/hillebranddaniel/dartscoremate_softwareentwicklung2/-/blob/main/Dockerfile?ref_type=heads)
+
+✅ [captured images of dartboard with arrows](https://gitlab.web.fh-kufstein.ac.at/hillebranddaniel/dartscoremate_softwareentwicklung2/-/tree/main/src/python/data/captured_images?ref_type=heads)
+
+✅ [streamlit camera caption app ](https://gitlab.web.fh-kufstein.ac.at/hillebranddaniel/dartscoremate_softwareentwicklung2/-/tree/develop/src/pic_snap?ref_type=heads)
+
+
 
 ## Grading
+<details>
+  <summary>Click to expand</summary>
 
 * OOP & Framework (50)
 * Unittests (5)
@@ -59,8 +87,32 @@ Personalized Shot Recommendations
 - ✅ Unittests: best practice = one per function
 - ✅ Presentation is on **May $\mathbf{16^{th}}$** with 80-90\% of project complete.
 
+</details>
+
+
+
 ## Authors and acknowledgment
-Patrick Feller, Chris Lehmann, Kathrin Lindauer, Ana Orkić, Daniel Hillebrand
+**Patrick Feller**
+
+✅make first flask environment 
+
+**Chris Lehmann**
+Unit tests 
+
+
+
+**Kathrin Lindauer**
+SQL
+
+
+
+**Ana Orkić**
+CSS
+
+
+**Daniel Hillebrand**
+Project Management
+Docker
 
 ## Links
 * [Moodle-Course Softwaredevelopment II](https://weblearn.fh-kufstein.ac.at/course/view.php?id=2643)
@@ -68,6 +120,52 @@ Patrick Feller, Chris Lehmann, Kathrin Lindauer, Ana Orkić, Daniel Hillebrand
 
 ## Project status
 project kickoff phase, past meeting 2025-03-10 6pm via TeamsTeams: *Meeting ID* 364 250 302 261, *Password* wu7Ui9TC)
+
+
 previous meeting: 2025-03-17 6pm via TeamsTeam 
 
-Next meeting: 2025-03-24 6pm via Teams
+previous meeting: 2025-03-24 6pm via TeamsTeam 
+
+**Next meeting: 2025-03-21 via TeamsTeam**
+
+
+.</p>
+</div>
+
+<div id="Team Charter" class="tabcontent">
+  <h3>Team Charter</h3>
+  <p>
+  <details>
+  <summary>Click to expand</summary>
+
+  Wir arbeiten selbstständig und formulieren bei Fragen konkrete Problemstellungen
+
+
+        
+      
+Wir fragen Hilfe an, indem wir andere Leute in Issues markieren, und antworten zeitnah auf Fragen, die an uns gestellt wurden.
+
+
+        
+      
+Wir dokumentieren unseren Arbeitsfortschritt sauber in den uns zugewiesenen Issues und halten diese Dokumentation immer aktuell (inkl. Time-Track)
+
+
+        
+      
+Wir versuche, Deadlines einzuhalten und melden uns rechtzeitig, wenn wir für ein Issue mehr Zeit brauchen oder eine Aufgabe nicht alleine schaffen
+
+
+        
+      
+Wir kommunizieren vorwiegend über GitLab/Teams und nur in dringenden Fällen über WhatsApp
+
+
+        
+      
+Wir arbeiten alle in separaten (Feature)-Branches, Mergen diesen nach Develop und nur stabile Versionen in den main branch.</p>
+</div>
+
+</details>
+
+
