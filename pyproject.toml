@@ -1,10 +1,14 @@
 [project]
 name = "dartscore_mate"
 version = "0.1.0"
-requires-pyton = ">=3.11"
+requires-python = ">=3.11"
 dependencies = [
     "numpy",
     "Flask>=3.0",
     "enum34",
-    "gunicorn"
+    "gunicorn",
+    "streamlit>=1.4",
+    "opencv-python",
+    "python-dotenv>=1.0.0",
+    "groq>=0.4.0",
 ]

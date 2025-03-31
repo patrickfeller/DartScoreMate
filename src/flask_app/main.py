@@ -1,9 +1,28 @@
-from flask import Flask, render_template, request, redirect, jsonify
+# -*- coding: utf-8 -*-
+
+from flask import Flask, render_template, request, redirect, jsonify, Response
 import gamedata
+import camera_handling
+import cv2 
+import os
+from dotenv import load_dotenv
+from groq import Groq
+# Lade Umgebungsvariablen
+load_dotenv()
+
+# Debug-Ausgaben
+# print("Aktuelles Verzeichnis:", os.getcwd())
+# print("Umgebungsvariablen geladen:", os.getenv('OPENAI_API_KEY') is not None)
+# print("API Key Länge:", len(os.getenv('OPENAI_API_KEY', '')))
+
+# Groq Client Setup
+# client = Groq(
+#     api_key=os.getenv('GROQ_API_KEY')
+# )
 
 
 # Shared thread references, currently not clear why needed
-adminRef = None
+adminRef = gamedata.Admin()
 gameRef = gamedata.Game()
 lockRef = None
 
@@ -21,8 +40,36 @@ def play():
 # Main page for the game
 @app.route("/board-status")
 def boardstatus():
-    return render_template("board-status.html")
- 
+    cam = camera_handling.camera()
+    available_cameras = cam.get_available_cameras()
+    # TODO: Camera settings are not yet implemented
+    resulution_options = cam.resulution_options
+    fps_options = cam.fps_options    
+    return render_template("board-status.html", avaiable_cameras = available_cameras, resulution_options = resulution_options, fps_options = fps_options)   
+
+# Convert still camera frames to video
+def generate_frames(camera_id):
+    camera = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
+    try:
+        while True:
+            success, frame = camera.read()
+            if not success:
+                break
+            else:
+                ret, buffer = cv2.imencode('.jpeg', frame)
+                frame = buffer.tobytes()
+                yield (b'--frame\r\n'
+                      b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    finally:
+        camera.release()
+
+# Routing for video feed
+@app.route('/video_feed')
+def video_feed():
+    camera_id = request.args.get('camera_id', default=0, type=int)
+    return Response(generate_frames(camera_id), 
+                   mimetype='multipart/x-mixed-replace; boundary=frame')
+
 # Route when Play-button get pressed
 @app.route("/new_game", methods=["POST"])
 def new_game():
@@ -79,6 +126,7 @@ def handle_throw():
         "winnerIndex": winner_index if just_won else -1
     })
 
+
 # Route to undo the last dart throw, if possible
 @app.route("/undo_throw", methods=["POST"])
 def undo_throw():
@@ -96,6 +144,57 @@ def undo_throw():
 def next_player():
     # TODO: Implement next functionality, if needed
     return jsonify({"success": True})
+
+@app.route("/save_game", methods=["POST"])
+def save_game():
+    # list of scores for each player
+    scores = gameRef.get_totals()
+    # list of players
+    players = [player.name for player in gameRef.players]
+    # played gamemode eg. 501
+    gamemode = gameRef.format
+    return jsonify({"success": True})
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    try:
+        # Debug-Ausgabe für die Anfrage
+        print("Empfangene Anfrage:", request.json)
+        
+        # Hole die Nachricht aus der Anfrage
+        user_message = request.json.get("message", "")
+        if not user_message:
+            return jsonify({"error": "Keine Nachricht empfangen"}), 400
+            
+        print("Verarbeite Nachricht:", user_message)  # Debug-Ausgabe
+        
+        # Groq API aufrufen
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte alle Fragen rund um das Dartspielen, einschließlich Regeln, Techniken, Ausrüstung und Geschichte. Sei freundlich und hilfreich."},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.7,
+            max_completion_tokens=1024,
+            top_p=1,
+            stream=False
+        )
+        
+        response = completion.choices[0].message.content
+        print("Antwort von Groq API erhalten:", response)  # Debug-Ausgabe
+        
+        return jsonify({
+            "response": response
+        })
+    except Exception as e:
+        print("Fehler aufgetreten:", str(e))  # Debug-Ausgabe
+        print("Fehlertyp:", type(e).__name__)  # Debug-Ausgabe
+        return jsonify({
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "details": "Bitte überprüfen Sie die Server-Logs für mehr Details."
+        }), 500
 
 if __name__=="__main__":
     app.run(port=5000,debug=True)
