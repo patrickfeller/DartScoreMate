@@ -1,7 +1,18 @@
-<header>    
-    <h1>🎯 Dart-App</h1>
-    <nav>        
-        <a class="divider" href="\play"><h2>Play</h2></a>
-        <a href="\board-status"><h2>Board Status</h2></a>        
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dart-App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>    
+        <h1>🎯 Dart-App</h1>
+        <nav>        
+            <a class="divider" href="\play"><h2>Play</h2></a>
+            <a href="\board-status"><h2>Board Status</h2></a>        
         </nav>
-</header> 
+    </header>
+    <script src="{{ url_for('static', filename='scripts/chatbot.js') }}"></script> 

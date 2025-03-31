@@ -156,6 +156,23 @@ function selectField(type, button) {
         // Disable bull button when triple is selected
         document.getElementById('bull-button').disabled = multiplier === 3;
     }
+    // Handle Save button
+    if (type === "SaveGame") {
+        fetch('/save_game', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Data Save:", data);
+            if (data.success) {
+                alert('Game saved successfully!');
+            } else {
+                console.error(data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+        return;
+    }
 }
 
 function handleScore(score) {
