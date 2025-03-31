@@ -71,12 +71,15 @@ Personalized Shot Recommendations
 <details>
   <summary>Click to expand</summary>
 
-* OOP & Framework (50)
-* Unittests (5)
-* Requirements / Docker (10)
-* Documentation (10)
-* Gitlab (10)
-* Presentation (15)
+<p> Current estimated points are marked in 🔵blue</span>.
+
+
+* OOP & Framework (50) 🔵30
+* Unittests (5) 🔵2
+* Requirements / Docker (10) 🔵5
+* Documentation (10) 🔵3
+* Gitlab (10) 🔵10
+* Presentation (15) 🔵2
 
 ### remarks
 - ❌ no hand-in with just one file 
@@ -111,27 +114,23 @@ CSS
 
 
 **Daniel Hillebrand**
-Project Management
-Docker
+Project Management | Docker | Gitlab | Model Training
 
 ## Links
 * [Moodle-Course Softwaredevelopment II](https://weblearn.fh-kufstein.ac.at/course/view.php?id=2643)
 * [Darts Gitlab Project Inspiration](https://github.com/TheAlgorithms/Dart)
 
 ## Project status
-project kickoff phase, past meeting 2025-03-10 6pm via TeamsTeams: *Meeting ID* 364 250 302 261, *Password* wu7Ui9TC)
 
+Planned deploy of a first app deploy with this week
 
-previous meeting: 2025-03-17 6pm via TeamsTeam 
+## Meeting History
+- 2025-03-10 6pm via TeamsTeam (project kickoff meeting)
+- 2025-03-17 6pm via TeamsTeam 
+- 2025-03-24 6pm via TeamsTeam 
+- 2025-03-21 6pm via TeamsTeam
 
-previous meeting: 2025-03-24 6pm via TeamsTeam 
-
-**Next meeting: 2025-03-21 via TeamsTeam**
-
-
-.</p>
-</div>
-
+$\Rightarrow$ **next meeting: 2025-04-14 6pm via TeamsTeam** $\Leftarrow$ 
 <div id="Team Charter" class="tabcontent">
   <h3>Team Charter</h3>
   <p>
