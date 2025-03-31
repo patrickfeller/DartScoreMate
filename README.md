@@ -40,18 +40,18 @@ A user interface which displays current score and suggested further throws
 <details>
   <summary>Click to expand</summary>
 
-Create Users
-Track Score
-Save Games (SQL/text files)
-ChatGPT Integration (Prompt: You are a darts export and answer specific questions related to darts)...
-Live-View of Dart Board (static)
+Create Users ✅
+Track Score ✅
+Save Games (SQL/text files) 
+ChatGPT Integration (Prompt: You are a darts export and answer specific questions related to darts)... ✅
+Live-View of Dart Board (static) ✅
 
 **Advanced Features**
 
-Live Video of Dart Board
-User-Login
+Live Video of Dart Board 🆗
+User-Login 
 Detect Score from Image
-Personalized Shot Recommendations
+Personalized Shot Recommendations 
 
 </details>
 
@@ -122,7 +122,7 @@ Project Management | Docker | Gitlab | Model Training
 
 ## Project status
 
-Planned deploy of a first app deploy with this week
+Planned deploy of a first app deploy with this week. Some KVPs and Preparing the Presentation in April. 
 
 ## Meeting History
 - 2025-03-10 6pm via TeamsTeam (project kickoff meeting)
