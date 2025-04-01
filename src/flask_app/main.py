@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template, request, redirect, jsonify, Response
-import gamedata
-import camera_handling
+from . import gamedata
+from . import camera_handling
 import cv2 
 import os
 from dotenv import load_dotenv
