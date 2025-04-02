@@ -2,11 +2,13 @@
 
 from enum import Enum
 
+
 class CameraMode(Enum):
     OFF = 'OFF'
     ON = 'ON'
     POSITIONING = 'POSITIONING'
     GAME = 'GAME'
+
 
 class Admin:
     def __init__(self):
@@ -15,6 +17,7 @@ class Admin:
         self.aimbot = None
         self.center_line = False
         self.skills = []
+
 
 class Dart:
     STRING_REP = ('', 'S', 'D', 'T')
@@ -40,6 +43,13 @@ class Dart:
         return self.position
 
 class Bust(Dart):
+    """
+    subclass of Dart that represents a "bust" in darts - a situation where a player's throw results in an invalid score
+    In dart games, a "bust" occurs when:
+    * The throw would reduce the score below zero
+    * The throw would leave exactly 1 point remaining (if double-out is required)
+    * The throw would bring the score to zero but wasn't a double (when double-out is required)
+    """
     def __init__(self, dart):
         super().__init__(dart.score, dart.multiplier, dart.position)
 
@@ -51,7 +61,8 @@ class Bust(Dart):
     
     def to_string(self):
         return 'BUST'
-    
+
+
 class Turn:
     def __init__(self, player):
         self.darts = []
@@ -62,21 +73,25 @@ class Turn:
 
     def bust(self, dart):
         for i in self.darts:
-            self.player.undo_dart(i)
+            self.player.undo_dart(i)    # undo score of current player
         self.darts.append(Bust(dart))
 
     def display(self):
+        """
+        Initialize with three empty throws and fill in actual throws.
+        """
         representation = ['-', '-', '-']
-
+        print(f"Current darts in turn: {len(self.darts)}")
         for i in range(min(3, len(self.darts))):
-            representation[i] = self.darts[i].to_string()
-        
+            print(f"Converting dart {i}: {self.darts[i].to_string()}")
+            dart_value = self.darts[i].to_string()
+            representation[i] = dart_value       
+        print(f"Final representation: {representation}")
         return representation
     
     def is_over(self):
         if len(self.darts) == 0:
-            return False
-        
+            return False        
         return len(self.darts) >= 3 or self.darts[-1].is_bust()
     
     def undo_last_dart(self):
@@ -91,8 +106,9 @@ class Turn:
             return last_dart
         return None
     
+
 class Leg:
-    def __init__(self, players, current_player):
+    def __init__(self, players, current_player): # is currnet_player index with 0 and 1 of len Leg correct?
         self.current_turn = Turn(players[current_player])
         self.turns = [self.current_turn]
         self.winner = None
@@ -104,8 +120,8 @@ class Leg:
     
     def dart(self, dart):
         if not self.current_player.is_bust(dart):
-            self.current_turn.dart(dart)
-            self.current_player.dart(dart)
+            self.current_turn.dart(dart)    # update throws current turn
+            self.current_player.dart(dart)  # update score current player
         else:
             self.current_turn.bust(dart)
 
@@ -121,11 +137,12 @@ class Leg:
         return ['-', '-', '-']
 
     def changeover(self):
+        self.change = True  
+        self.last_completed_throws = self.current_turn.display()  # Store last throws before changing
         self.player_index = (self.player_index + 1) % 2
-        self.current_player = self.players[(self.player_index)]
-        self.current_turn = Turn(self.current_player)
+        self.current_player = self.players[self.player_index]
+        self.current_turn = Turn(self.current_player)  # Create new turn with empty throws
         self.turns.append(self.current_turn)
-        self.change = True
     
     def undo_last_dart(self):
         if self.current_turn.darts: # If there are darts in current turn
@@ -138,6 +155,7 @@ class Leg:
             self.player_index = self.players.index(self.current_player)
             return self.current_turn.undo_last_dart()
         return None
+
 
 class Player:
     def __init__(self, name, format):
@@ -154,12 +172,11 @@ class Player:
         
     def is_bust(self, dart):
         result = self.score - dart.value()
-
-        if result == 1 or result < 0:
+        if result < 0: # add if doubl-out is involved: == 1 or result
             return True
-        if result == 0 and not dart.is_double:
-            return True
-        
+        # uncomment if double-out is involved:
+        # if result == 0 and not dart.is_double:
+        #     return True
         return False
     
     def has_won(self):
@@ -168,45 +185,60 @@ class Player:
     def reset(self):
         self.score = self.format
 
-# Game class stores information about the current game being played between two players
-# The Front-end and Back-end use a shared Game class object to interface
+
 class Game:
+    """
+    Game class stores information about the current game being played between two players
+    The Front-end and Back-end use a shared Game class object to interface
+    """
     def __init__(self):
         self.positions = []
         self.new_positions = []
         self.playing = False
         self.update = False
         self.current_leg = None
+        self.is_bust = False
+        self.winner_index = None 
 
     def start_game(self, first_to, format, name_a, name_b):
+        """
+        Starts a new game between two players and creats class objects Players and Legs.
+        :param first_to: The number of legs a player must win to win the game
+        :param format: The score format for the game (e.g., 501, 301)
+        :param name_a: The name of player A
+        :param name_b: The name of player B
+        """
         self.first_to = first_to
+        self.players = (Player(name_a, format), Player(name_b, format))   
         self.legs_played = []
-        self.format = format
-        self.players = (Player(name_a, format), Player(name_b, format))
         self.current_leg = Leg(self.players, len(self.legs_played) % 2)
+        self.format = format             
         self.playing = True
         self.update = True
         self.clear = False
         self.just_won = False
 
     def dart(self, dart):
-        self.current_leg.dart(dart)
+        self.is_bust = self.current_leg.current_player.is_bust(dart)
+        self.current_leg.dart(dart) # Leg([players], current_player 0/1).Dart
         self.has_won()
         self.update = True
 
     def has_won(self):
-        for player in self.players:
+        for i, player in enumerate(self.players):
             if player.has_won():
                 self.current_leg.winner = player
                 player.wins += 1
+                self.winner_index = i  # Store the winning player's index
                 self.reset()
                 self.legs_played.append(self.current_leg)
                 self.current_leg = Leg(self.players, len(self.legs_played) % 2)
                 self.just_won = True
     
     def get_scores(self):
+        """Return current turn's throws"""
         if self.playing and self.current_leg:
-            return self.current_leg.current_turn.display()
+            return self.current_leg.current_turn.display()  # Always return current turn's throws
         return ['-', '-', '-']
     
     def get_wins(self):
@@ -230,12 +262,10 @@ class Game:
 
     def get_new_dart(self):
         if not self.new_positions:
-            return None, '-'
-        
+            return None, '-'        
         dart = self.new_positions.pop()
         position = dart.get_position()
         score = dart.to_string()
-
         return position, score
     
     def change(self):
@@ -244,9 +274,14 @@ class Game:
         return result
     
     def has_just_won(self):
+        """
+        checks if the player just won
+        :return True/False from func just_won
+        :return player index that just won
+        """
         result = self.just_won
         self.just_won = False
-        return result, self.current_leg.player_index
+        return result, self.winner_index  # Return stored winner index
     
     def is_clear(self):
         result = self.clear
