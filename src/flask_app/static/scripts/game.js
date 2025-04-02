@@ -54,62 +54,15 @@ function updateDisplay(data) {
         }
     }
 
-
     // Update round sum
     const roundSumElement = document.getElementById('round-sum');
     if (roundSumElement) {
         roundSumElement.textContent = roundSum;
     }
-
-    // Handle round completion
-    if (currentThrow === 3 && !isCountdownActive) {
-        console.log(currentThrow)
-        const lastRoundSum = roundSum; // Store the actual calculated sum
-
-        // Start countdown
-        if (isCountdownActive) return; // Prevent multiple countdowns
-        isCountdownActive = true;
-
-        // Disable all dart board buttons during countdown
-        const dartButtons = document.querySelectorAll('.dart-board button');
-        dartButtons.forEach(btn => btn.disabled = true);
-        
-        // Create and show countdown element
-        const countdown = document.createElement('div');
-        countdown.id = 'countdown';
-        countdown.classList.add('countdown-overlay');
-        document.body.appendChild(countdown);
-        
-        // Start 5 second countdown
-        let timeLeft = 5;
-        const countdownInterval = setInterval(() => {
-            countdown.textContent = `Next player in ${timeLeft} seconds...`;
-            // Keep showing the last throws during countdown - not working
-            timeLeft--;
-            
-            if (timeLeft < 0) {
-                clearInterval(countdownInterval);
-                document.body.removeChild(countdown);
-                dartButtons.forEach(btn => btn.disabled = false);
-                
-                // Reset throws and round total only after countdown - not working
-                document.getElementById('round-sum').textContent = "0";
-                for (let i = 1; i <= 3; i++) {
-                    document.getElementById('throw' + i).textContent = "-";
-                }
-                
-                // Switch to next player
-                currentThrow = 0;
-                console.log(currentThrow)
-                currentPlayer = (currentPlayer + 1) % 2;
-                updatePlayerTurn();
-                isCountdownActive = false;
-            }
-        }, 1000);
-    } else     
+  
     // Handle win condition
     if (data.justWon) {
-        const winner = data.winderIndex === 0 ? 'Player A' : 'Player B';
+        const winner = data.winnerIndex === 0 ? 'Player A' : 'Player B';
         alert(winner + ' has won the game!');
         // Disable throw buttons
         document.querySelectorAll('.dart-board button').forEach(btn => {
@@ -159,28 +112,35 @@ function selectField(type, button) {
 }
 
 function handleScore(score) {
-    // Change the condition to check if currentThrow is less than 3
     if (currentThrow <= 3) {
-        // Increment currentThrow before making the throw
         currentThrow++;
-        console.log(currentThrow)        
-        // Send data to server
+        
         fetch('/throw?' + new URLSearchParams({
             throwNumber: currentThrow,
             score: score,
             multiplier: multiplier
         }))
-        // receive response from server with updated data
         .then(response => response.json())
         .then(data => {
             updateDisplay(data);
             console.log(data);
-            if (data.isRoundComplete === false) {
-                lastThrows.push(data.currentThrows);
-            } else {
-                lastThrows = [];
+
+            // Check for BUST and show popup
+            if (data.isBust) {
+                alert('BUST! Player score reverted. Next player\'s turn.');
             }
-            console.log(lastThrows);
+            
+            // Check if round is complete (3 throws or BUST)
+            if (data.isRoundComplete) {
+                // Only switch players if we have 3 throws OR a BUST occurred
+                if (currentThrow === 3 || data.isBust) {
+                    currentThrow = 0;  // Reset throw counter
+                    currentPlayer = (currentPlayer + 1) % 2;  // Switch player
+                    updatePlayerTurn();
+                    lastThrows = [];
+                }
+            }
+            
             // Reset multiplier
             multiplier = 1;
             document.getElementById('double').style.backgroundColor = '';
@@ -195,11 +155,3 @@ function handleScore(score) {
 document.addEventListener('DOMContentLoaded', function() {
     updatePlayerTurn();
 });
-
-// Update total scores for both players with undo functionality
-// TODO: should be moved into updateDisplay
-// function updateTotals(totals) {
-    
-//     document.getElementById('playerA_score').textContent = totals[0];
-//     document.getElementById('playerB_score').textContent = totals[1];
-// }
