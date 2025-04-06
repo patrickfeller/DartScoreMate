@@ -4,12 +4,17 @@ test:
     image: python:3.11
     stage: tests
     before_script:
+        - apt-get update
+        - ap-get install -y chromium-driver xvfb 
         - pip install uv
         - uv pip compile pyproject.toml -o requirements.txt
         - pip install -r requirements.txt
         - pip install unittest-xml-reporting 
+        – wget https://chromedriver.storage.googleapis.com/91.0.4472.101/chromedriver_linux64.zip
+        – unzip chromedriver_linux64.zip
+        – mv chromedriver /usr/local/bin/
+        – apt-get update && apt-get install -y chromium # Install Chrome browser
         - export PYTHONPATH=.
-
     script:
         - python -m xmlrunner discover -s src/python -o test-reports
     artifacts:
