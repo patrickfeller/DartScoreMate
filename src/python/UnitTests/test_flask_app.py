@@ -4,9 +4,11 @@ from src.flask_app.main import app
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 import time
 import os
 import subprocess
+import sys
 
 # in this script, we can add tests for main.py.
 # At the moment, I only created one to work on Gitlab Integration.
@@ -51,7 +53,14 @@ class IntegrationTest(unittest.TestCase):
         os.environ['FLASK_APP'] = 'src.flask_app.main' 
         # initialize the Flask test client
         self.flask_process = subprocess.Popen(['flask', 'run', '--port', '5000'])
-        self.browser =  webdriver.Chrome()
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        # Only set binary location for CI-CD
+        if sys.platform.startswith("linux"):
+            options.binary_location = "/usr/bin/chromium" 
+        self.browser =  webdriver.Chrome(options=options)
         self.browser.implicitly_wait(20)
 
     def tearDown(self):
