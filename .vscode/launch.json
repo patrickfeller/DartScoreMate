@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "Run test_flask_app module",
+            "type": "python",
+            "request": "launch",
+            "module": "src.python.UnitTests.test_flask_app",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            },
+            "justMyCode": false,
+            "console": "integratedTerminal"
+        }
+    ]
+}

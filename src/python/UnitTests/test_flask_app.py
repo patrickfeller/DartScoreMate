@@ -9,6 +9,7 @@ import time
 import os
 import subprocess
 import sys
+import chromedriver_autoinstaller
 
 # in this script, we can add tests for main.py.
 # At the moment, I only created one to work on Gitlab Integration.
@@ -59,6 +60,7 @@ class IntegrationTest(unittest.TestCase):
         options.add_argument("--disable-dev-shm-usage")
         # Only set binary location for CI-CD
         if sys.platform.startswith("linux"):
+            chromedriver_autoinstaller.install()
             options.binary_location = "/usr/bin/chromium" 
         self.browser =  webdriver.Chrome(options=options)
         self.browser.implicitly_wait(20)
