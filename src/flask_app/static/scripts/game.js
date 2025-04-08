@@ -64,10 +64,8 @@ function updateDisplay(data) {
     if (data.justWon) {
         const winner = data.winnerIndex === 0 ? 'Player A' : 'Player B';
         alert(winner + ' has won the game!');
-        // Disable throw buttons
-        document.querySelectorAll('.dart-board button').forEach(btn => {
-            btn.disabled = true;
-        });
+        // Redirect to homepage after alert is closed
+        window.location.href = '/';
     }
 }
 
@@ -145,6 +143,7 @@ function handleScore(score) {
             multiplier = 1;
             document.getElementById('double').style.backgroundColor = '';
             document.getElementById('triple').style.backgroundColor = '';
+            document.getElementById('bull-button').disabled = false;  // Re-enable bull button when resetting
         });
     } else {
         alert('You have already made three throws. Please click Next.');
