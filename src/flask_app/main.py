@@ -31,10 +31,12 @@ current_multiplier = 1
 
 app = Flask(__name__)
 
+
 @app.route("/")
 @app.route("/play")
 def play():
     return render_template("play.html")
+
 
 # Main page for the game
 @app.route("/board-status")
@@ -45,6 +47,7 @@ def boardstatus():
     resulution_options = cam.resulution_options
     fps_options = cam.fps_options    
     return render_template("board-status.html", avaiable_cameras = available_cameras, resulution_options = resulution_options, fps_options = fps_options)   
+
 
 # Convert still camera frames to video
 def generate_frames(camera_id):
@@ -62,12 +65,14 @@ def generate_frames(camera_id):
     finally:
         camera.release()
 
+
 # Routing for video feed
 @app.route('/video_feed')
 def video_feed():
     camera_id = request.args.get('camera_id', default=0, type=int)
     return Response(generate_frames(camera_id), 
                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 # Route when Play-button get pressed
 @app.route("/new_game", methods=["POST"])
@@ -81,6 +86,7 @@ def new_game():
     gameRef.start_game(first_to, format, playerA, playerB)
     return redirect('/game/'+playerA+'/'+playerB+'/'+str(format)+'/'+str(first_to))
 
+
 # Route bevore new_game starts
 @app.route('/game/<playerA>/<playerB>/<format>/<first_to>')
 def game(playerA, playerB, format, first_to):
@@ -89,19 +95,19 @@ def game(playerA, playerB, format, first_to):
     return render_template('game.html', playerA=playerA, playerB=playerB, format=format, 
                          scoreA=scores[0], scoreB=scores[1])
 
+
 # Route for handling throws
 @app.route("/throw")
 def handle_throw():
     throw_number = int(request.args.get('throwNumber', 1))
     base_score = int(request.args.get('score', 0))
     multiplier = int(request.args.get('multiplier', 1))
-    # -> transfer to MariaDB
+    
     # Create a dart object
     dart = gamedata.Dart(base_score, multiplier, None)  # Position is None as we don't use camera
     
     # Try to make the throw
-    gameRef.dart(dart)
-    
+    gameRef.dart(dart)    
     
     # Get updated game state
     scores = gameRef.get_totals()
@@ -110,7 +116,7 @@ def handle_throw():
     
     # Check if player has won
     just_won, winner_index = gameRef.has_just_won()
-    
+
     # Prepare display score
     display_score = f"{multiplier}×{base_score}" if multiplier > 1 else str(base_score)
     
@@ -122,9 +128,11 @@ def handle_throw():
         "scoreB": scores[1],
         "currentThrows": current_throws,
         "isRoundComplete": gameRef.current_leg.change,
+        "isBust": gameRef.is_bust,  # Add this new flag
         "justWon": just_won,
         "winnerIndex": winner_index if just_won else -1
     })
+
 
 # Route to undo the last dart throw, if possible
 @app.route("/undo_throw", methods=["POST"])
