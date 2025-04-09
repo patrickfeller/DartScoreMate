@@ -53,7 +53,7 @@ class IntegrationTest(unittest.TestCase):
     def setUp(self):
         os.environ['FLASK_APP'] = 'src.flask_app.main' 
         # initialize the Flask test client
-        self.flask_process = subprocess.Popen(['flask', 'run', '--port', '5000'])
+        self.flask_process = subprocess.Popen(['python', '-m', 'flask', 'run', '--port', '5000'])
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
@@ -61,7 +61,9 @@ class IntegrationTest(unittest.TestCase):
         # Only set binary location for CI-CD
         if sys.platform.startswith("linux"):
             chromedriver_autoinstaller.install()
-            options.binary_location = "/usr/bin/chromium" 
+            options.binary_location = "/usr/bin/chromium"
+        else:
+            chromedriver_autoinstaller.install()
         self.browser =  webdriver.Chrome(options=options)
         self.browser.implicitly_wait(20)
 

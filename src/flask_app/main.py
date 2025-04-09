@@ -8,9 +8,9 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 
-usingChatBotApiKey = False
+GROQ_API_KEY = os.getenv('OPENAI_API_KEY',"")# fallback value emptystring
 
-if usingChatBotApiKey:
+if GROQ_API_KEY:
     # Lade Umgebungsvariablen
     load_dotenv()
 
@@ -21,7 +21,7 @@ if usingChatBotApiKey:
 
     # Groq Client Setup
     client = Groq(
-        api_key=os.getenv('OPENAI_API_KEY')
+        api_key=GROQ_API_KEY
     )
 
 # Shared thread references, currently not clear why needed
@@ -158,7 +158,7 @@ def next_player():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    if usingChatBotApiKey:
+    if GROQ_API_KEY:
         try:
             # Debug-Ausgabe für die Anfrage
             print("Empfangene Anfrage:", request.json)
@@ -170,11 +170,17 @@ def chat():
                 
             print("Verarbeite Nachricht:", user_message)  # Debug-Ausgabe
             
+            prompt = """
+                        Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte alle Fragen rund 
+                        um das Dartspielen, einschließlich Regeln, Techniken, Ausrüstung und Geschichte. 
+                        Sei freundlich und hilfreich."
+            """
+
             # Groq API aufrufen
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
-                    {"role": "system", "content": "Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte alle Fragen rund um das Dartspielen, einschließlich Regeln, Techniken, Ausrüstung und Geschichte. Sei freundlich und hilfreich."},
+                    {"role": "system", "content": prompt},
                     {"role": "user", "content": user_message}
                 ],
                 temperature=0.7,
@@ -197,6 +203,8 @@ def chat():
                 "error_type": type(e).__name__,
                 "details": "Bitte überprüfen Sie die Server-Logs für mehr Details."
             }), 500
+    else:
+        return jsonify({"response": "This service is currently not available - no api-key provided."})
 
 if __name__=="__main__":
     app.run(port=5000,debug=True)

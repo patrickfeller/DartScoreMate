@@ -12,7 +12,7 @@ test:
         - pip install unittest-xml-reporting chromedriver-autoinstaller
         - export PYTHONPATH=.
     script:
-        - python -m xmlrunner discover -s src/python -o test-reports
+        - python -m xmlrunner discover -s src/flask_app -o test-reports
     artifacts:
         paths:
             - test-reports/

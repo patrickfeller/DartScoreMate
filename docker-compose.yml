@@ -6,6 +6,6 @@ services:
     container_name: dartscoremate_flask
     ports:
       - "5000:5000"
-    command: gunicorn --bind 0.0.0.0:5000 main:app
+    command: gunicorn --bind 0.0.0.0:5000 src.flask_app.main:app
 
   

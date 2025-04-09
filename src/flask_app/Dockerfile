@@ -1,8 +1,8 @@
 FROM sinfallas/base-python-uv:3.11
 WORKDIR /app
-
+RUN mkdir -p src
 # copy project contents to /app 
-COPY src/flask_app .
+COPY src src
 COPY pyproject.toml .
 
 # install all required packages with uv
