@@ -7,6 +7,8 @@ import cv2
 import os
 from dotenv import load_dotenv
 from groq import Groq
+from aid_functions_sql import get_db_connection
+from mysql.connector.errors import Error
 # Lade Umgebungsvariablen
 load_dotenv()
 
@@ -148,11 +150,28 @@ def next_player():
 @app.route("/save_game", methods=["POST"])
 def save_game():
     # list of scores for each player
-    scores = gameRef.get_totals()
+    score_player_A, score_player_B = gameRef.get_totals()
     # list of players
-    players = [player.name for player in gameRef.players]
+    player_A, player_B = [player.name for player in gameRef.players]
+    
     # played gamemode eg. 501
-    gamemode = gameRef.format
+    game_mode = gameRef.format
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+   
+    try:
+        cursor.execute("INSERT INTO game (game_mode, player_A, player_B, score_player_A, score_player_B) VALUES (%s, %s, %s, %s, %s)", (game_mode, player_A, player_B, score_player_A, score_player_B))
+        conn.commit()
+    
+    except Error as e:
+        print(f"An error occured, {str(e)}")
+        return jsonify({"sucess": False})
+    
+    finally:
+        cursor.close()
+        conn.close()
+
     return jsonify({"success": True})
 
 @app.route("/chat", methods=["POST"])
