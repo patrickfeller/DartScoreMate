@@ -8,12 +8,12 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 
+# load environment variables
+load_dotenv()
+
 GROQ_API_KEY = os.getenv('OPENAI_API_KEY',"")# fallback value emptystring
 
 if GROQ_API_KEY:
-    # Lade Umgebungsvariablen
-    load_dotenv()
-
     # Debug-Ausgaben
     print("Aktuelles Verzeichnis:", os.getcwd())
     print("Umgebungsvariablen geladen:", os.getenv('OPENAI_API_KEY') is not None)

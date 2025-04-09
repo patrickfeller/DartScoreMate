@@ -18,3 +18,5 @@ test:
             - test-reports/
         reports:
             junit: test-reports/*.xml
+    environment:
+        GROQ_API_KEY: $GROQ_API_KEY
