@@ -1,0 +1,20 @@
+stages:
+    - tests
+test:
+    image: python:3.11
+    stage: tests
+    before_script:
+        - apt-get update
+        - apt-get install -y chromium xvfb
+        - pip install uv
+        - uv pip compile pyproject.toml -o requirements.txt
+        - pip install -r requirements.txt
+        - pip install unittest-xml-reporting chromedriver-autoinstaller
+        - export PYTHONPATH=.
+    script:
+        - python -m xmlrunner discover -s src/python -o test-reports
+    artifacts:
+        paths:
+            - test-reports/
+        reports:
+            junit: test-reports/*.xml

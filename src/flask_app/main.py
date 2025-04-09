@@ -1,24 +1,28 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template, request, redirect, jsonify, Response
-import gamedata
-import camera_handling
+from . import gamedata
+from . import camera_handling
 import cv2 
 import os
 from dotenv import load_dotenv
 from groq import Groq
-# Lade Umgebungsvariablen
-load_dotenv()
 
-# Debug-Ausgaben
-print("Aktuelles Verzeichnis:", os.getcwd())
-print("Umgebungsvariablen geladen:", os.getenv('OPENAI_API_KEY') is not None)
-print("API Key Länge:", len(os.getenv('OPENAI_API_KEY', '')))
+usingChatBotApiKey = False
 
-# Groq Client Setup
-client = Groq(
-    api_key=os.getenv('OPENAI_API_KEY')
-)
+if usingChatBotApiKey:
+    # Lade Umgebungsvariablen
+    load_dotenv()
+
+    # Debug-Ausgaben
+    print("Aktuelles Verzeichnis:", os.getcwd())
+    print("Umgebungsvariablen geladen:", os.getenv('OPENAI_API_KEY') is not None)
+    print("API Key Länge:", len(os.getenv('OPENAI_API_KEY', '')))
+
+    # Groq Client Setup
+    client = Groq(
+        api_key=os.getenv('OPENAI_API_KEY')
+    )
 
 # Shared thread references, currently not clear why needed
 adminRef = gamedata.Admin()
@@ -154,44 +158,45 @@ def next_player():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    try:
-        # Debug-Ausgabe für die Anfrage
-        print("Empfangene Anfrage:", request.json)
-        
-        # Hole die Nachricht aus der Anfrage
-        user_message = request.json.get("message", "")
-        if not user_message:
-            return jsonify({"error": "Keine Nachricht empfangen"}), 400
+    if usingChatBotApiKey:
+        try:
+            # Debug-Ausgabe für die Anfrage
+            print("Empfangene Anfrage:", request.json)
             
-        print("Verarbeite Nachricht:", user_message)  # Debug-Ausgabe
-        
-        # Groq API aufrufen
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte alle Fragen rund um das Dartspielen, einschließlich Regeln, Techniken, Ausrüstung und Geschichte. Sei freundlich und hilfreich."},
-                {"role": "user", "content": user_message}
-            ],
-            temperature=0.7,
-            max_completion_tokens=1024,
-            top_p=1,
-            stream=False
-        )
-        
-        response = completion.choices[0].message.content
-        print("Antwort von Groq API erhalten:", response)  # Debug-Ausgabe
-        
-        return jsonify({
-            "response": response
-        })
-    except Exception as e:
-        print("Fehler aufgetreten:", str(e))  # Debug-Ausgabe
-        print("Fehlertyp:", type(e).__name__)  # Debug-Ausgabe
-        return jsonify({
-            "error": str(e),
-            "error_type": type(e).__name__,
-            "details": "Bitte überprüfen Sie die Server-Logs für mehr Details."
-        }), 500
+            # Hole die Nachricht aus der Anfrage
+            user_message = request.json.get("message", "")
+            if not user_message:
+                return jsonify({"error": "Keine Nachricht empfangen"}), 400
+                
+            print("Verarbeite Nachricht:", user_message)  # Debug-Ausgabe
+            
+            # Groq API aufrufen
+            completion = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte alle Fragen rund um das Dartspielen, einschließlich Regeln, Techniken, Ausrüstung und Geschichte. Sei freundlich und hilfreich."},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.7,
+                max_completion_tokens=1024,
+                top_p=1,
+                stream=False
+            )
+            
+            response = completion.choices[0].message.content
+            print("Antwort von Groq API erhalten:", response)  # Debug-Ausgabe
+            
+            return jsonify({
+                "response": response
+            })
+        except Exception as e:
+            print("Fehler aufgetreten:", str(e))  # Debug-Ausgabe
+            print("Fehlertyp:", type(e).__name__)  # Debug-Ausgabe
+            return jsonify({
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "details": "Bitte überprüfen Sie die Server-Logs für mehr Details."
+            }), 500
 
 if __name__=="__main__":
     app.run(port=5000,debug=True)
