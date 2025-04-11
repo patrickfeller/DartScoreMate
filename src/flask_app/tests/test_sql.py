@@ -1,7 +1,7 @@
 from src.flask_app.aid_functions_sql import get_db_connection
 from mysql.connector.errors import Error
 
-def test_db_connection():
+def db_connection_test():
     try:
         conn = get_db_connection()
         if conn and conn.is_connected():
