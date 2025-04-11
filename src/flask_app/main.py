@@ -7,11 +7,13 @@ import cv2
 import os
 from dotenv import load_dotenv
 from groq import Groq
+from . import aid_functions_sql 
+from mysql.connector.errors import Error
 
 # load environment variables
 load_dotenv()
 
-GROQ_API_KEY = os.getenv('OPENAI_API_KEY',"")# fallback value emptystring
+GROQ_API_KEY = os.getenv('GROQ_API_KEY',"")# fallback value emptystring
 
 if GROQ_API_KEY:
     # Debug-Ausgaben
@@ -52,7 +54,6 @@ def boardstatus():
     fps_options = cam.fps_options    
     return render_template("board-status.html", avaiable_cameras = available_cameras, resulution_options = resulution_options, fps_options = fps_options)   
 
-
 # Convert still camera frames to video
 def generate_frames(camera_id):
     camera = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
@@ -69,14 +70,12 @@ def generate_frames(camera_id):
     finally:
         camera.release()
 
-
 # Routing for video feed
 @app.route('/video_feed')
 def video_feed():
     camera_id = request.args.get('camera_id', default=0, type=int)
     return Response(generate_frames(camera_id), 
                    mimetype='multipart/x-mixed-replace; boundary=frame')
-
 
 # Route when Play-button get pressed
 @app.route("/new_game", methods=["POST"])
@@ -205,6 +204,33 @@ def chat():
             }), 500
     else:
         return jsonify({"response": "This service is currently not available - no api-key provided."})
+
+@app.route("/save_game", methods=["POST"])
+def save_game():
+    # list of scores for each player
+    score_player_A, score_player_B = gameRef.get_totals()
+    # list of players
+    player_A, player_B = [player.name for player in gameRef.players]
+    
+    # played gamemode eg. 501
+    game_mode = gameRef.format
+    
+    conn = aid_functions_sql.get_db_connection()
+    cursor = conn.cursor()
+   
+    try:
+        cursor.execute("INSERT INTO game (game_mode, player_A, player_B, score_player_A, score_player_B) VALUES (%s, %s, %s, %s, %s)", (game_mode, player_A, player_B, score_player_A, score_player_B))
+        conn.commit()
+    
+    except Error as e:
+        print(f"An error occured, {str(e)}")
+        return jsonify({"sucess": False})
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True})
 
 if __name__=="__main__":
     app.run(port=5000,debug=True)
