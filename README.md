@@ -1,5 +1,6 @@
 # DartScoreMate – Real-time Dart Score Recognition Web App
 
+
 ## 📚 Table of Contents
 - [About the Project](#about-the-project)
 - [Tech Stack](#tech-stack)
