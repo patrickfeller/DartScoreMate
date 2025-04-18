@@ -1,24 +1,30 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template, request, redirect, jsonify, Response
-import gamedata
-import camera_handling
+from . import gamedata
+from . import camera_handling
 import cv2 
 import os
 from dotenv import load_dotenv
 from groq import Groq
-# Lade Umgebungsvariablen
+from . import aid_functions_sql 
+from mysql.connector.errors import Error
+
+# load environment variables
 load_dotenv()
 
-# Debug-Ausgaben
-print("Aktuelles Verzeichnis:", os.getcwd())
-print("Umgebungsvariablen geladen:", os.getenv('OPENAI_API_KEY') is not None)
-print("API Key Länge:", len(os.getenv('OPENAI_API_KEY', '')))
+GROQ_API_KEY = os.getenv('GROQ_API_KEY',"")# fallback value emptystring
 
-# Groq Client Setup
-client = Groq(
-    api_key=os.getenv('OPENAI_API_KEY')
-)
+if GROQ_API_KEY:
+    # Debug-Ausgaben
+    print("Aktuelles Verzeichnis:", os.getcwd())
+    print("Umgebungsvariablen geladen:", os.getenv('OPENAI_API_KEY') is not None)
+    print("API Key Länge:", len(os.getenv('OPENAI_API_KEY', '')))
+
+    # Groq Client Setup
+    client = Groq(
+        api_key=GROQ_API_KEY
+    )
 
 # Shared thread references, currently not clear why needed
 adminRef = gamedata.Admin()
@@ -48,7 +54,6 @@ def boardstatus():
     fps_options = cam.fps_options    
     return render_template("board-status.html", avaiable_cameras = available_cameras, resulution_options = resulution_options, fps_options = fps_options)   
 
-
 # Convert still camera frames to video
 def generate_frames(camera_id):
     camera = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
@@ -65,14 +70,12 @@ def generate_frames(camera_id):
     finally:
         camera.release()
 
-
 # Routing for video feed
 @app.route('/video_feed')
 def video_feed():
     camera_id = request.args.get('camera_id', default=0, type=int)
     return Response(generate_frames(camera_id), 
                    mimetype='multipart/x-mixed-replace; boundary=frame')
-
 
 # Route when Play-button get pressed
 @app.route("/new_game", methods=["POST"])
@@ -154,44 +157,80 @@ def next_player():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    try:
-        # Debug-Ausgabe für die Anfrage
-        print("Empfangene Anfrage:", request.json)
-        
-        # Hole die Nachricht aus der Anfrage
-        user_message = request.json.get("message", "")
-        if not user_message:
-            return jsonify({"error": "Keine Nachricht empfangen"}), 400
+    if GROQ_API_KEY:
+        try:
+            # Debug-Ausgabe für die Anfrage
+            print("Empfangene Anfrage:", request.json)
             
-        print("Verarbeite Nachricht:", user_message)  # Debug-Ausgabe
-        
-        # Groq API aufrufen
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte alle Fragen rund um das Dartspielen, einschließlich Regeln, Techniken, Ausrüstung und Geschichte. Sei freundlich und hilfreich."},
-                {"role": "user", "content": user_message}
-            ],
-            temperature=0.7,
-            max_completion_tokens=1024,
-            top_p=1,
-            stream=False
-        )
-        
-        response = completion.choices[0].message.content
-        print("Antwort von Groq API erhalten:", response)  # Debug-Ausgabe
-        
-        return jsonify({
-            "response": response
-        })
-    except Exception as e:
-        print("Fehler aufgetreten:", str(e))  # Debug-Ausgabe
-        print("Fehlertyp:", type(e).__name__)  # Debug-Ausgabe
-        return jsonify({
-            "error": str(e),
-            "error_type": type(e).__name__,
-            "details": "Bitte überprüfen Sie die Server-Logs für mehr Details."
-        }), 500
+            # Hole die Nachricht aus der Anfrage
+            user_message = request.json.get("message", "")
+            if not user_message:
+                return jsonify({"error": "Keine Nachricht empfangen"}), 400
+                
+            print("Verarbeite Nachricht:", user_message)  # Debug-Ausgabe
+            
+            prompt = """
+                        Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte alle Fragen rund 
+                        um das Dartspielen, einschließlich Regeln, Techniken, Ausrüstung und Geschichte. 
+                        Sei freundlich und hilfreich."
+            """
+
+            # Groq API aufrufen
+            completion = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.7,
+                max_completion_tokens=1024,
+                top_p=1,
+                stream=False
+            )
+            
+            response = completion.choices[0].message.content
+            print("Antwort von Groq API erhalten:", response)  # Debug-Ausgabe
+            
+            return jsonify({
+                "response": response
+            })
+        except Exception as e:
+            print("Fehler aufgetreten:", str(e))  # Debug-Ausgabe
+            print("Fehlertyp:", type(e).__name__)  # Debug-Ausgabe
+            return jsonify({
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "details": "Bitte überprüfen Sie die Server-Logs für mehr Details."
+            }), 500
+    else:
+        return jsonify({"response": "This service is currently not available - no api-key provided."})
+
+@app.route("/save_game", methods=["POST"])
+def save_game():
+    # list of scores for each player
+    score_player_A, score_player_B = gameRef.get_totals()
+    # list of players
+    player_A, player_B = [player.name for player in gameRef.players]
+    
+    # played gamemode eg. 501
+    game_mode = gameRef.format
+    
+    conn = aid_functions_sql.get_db_connection()
+    cursor = conn.cursor()
+   
+    try:
+        cursor.execute("INSERT INTO game (game_mode, player_A, player_B, score_player_A, score_player_B) VALUES (%s, %s, %s, %s, %s)", (game_mode, player_A, player_B, score_player_A, score_player_B))
+        conn.commit()
+    
+    except Error as e:
+        print(f"An error occured, {str(e)}")
+        return jsonify({"sucess": False})
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True})
 
 @app.route("/current-game")
 def return_to_game():

@@ -3,14 +3,14 @@ name = "dartscore_mate"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
-    "numpy",
     "Flask>=3.0",
     "enum34",
     "gunicorn",
-    "streamlit>=1.4",
     "opencv-python-headless",
     "python-dotenv>=1.0.0",
-    "groq>=0.4.0"
+    "groq>=0.4.0",
+    "selenium>=4.30.0",
+    "mysql-connector-python>=9.2.0",
 ]
 
 # add these lines because otherwise, uv will treat our flask files as libraries and throw an error
