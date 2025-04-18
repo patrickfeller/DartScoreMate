@@ -193,5 +193,19 @@ def chat():
             "details": "Bitte überprüfen Sie die Server-Logs für mehr Details."
         }), 500
 
+@app.route("/current-game")
+def return_to_game():
+    # Check if there's an active game
+    if gameRef.playing:
+        scores = gameRef.get_totals()
+        if scores != -1:  # Game exists
+            playerA = gameRef.players[0].name
+            playerB = gameRef.players[1].name
+            format = gameRef.format
+            first_to = gameRef.first_to
+            return redirect(f'/game/{playerA}/{playerB}/{format}/{first_to}')
+    # If no active game, redirect to new game page
+    return redirect('/play')
+
 if __name__=="__main__":
     app.run(port=5000,debug=True)
