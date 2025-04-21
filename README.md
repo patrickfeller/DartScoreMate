@@ -2,17 +2,16 @@
 
 ## 📚 Table of Contents
 - [About the Project](#about-the-project)
-- [Tech Stack](#tech-stack)
 - [Features](#features)
-- [Project Structure](#project-structure)
-- [Branches](#branches)
-- [Installation & Setup](#installation--setup)
-- [Testing](#testing)
-- [Contributors](#contributors)
-- [Status & Roadmap](#status--roadmap)
-- [Meeting History](#meeting-history)
-- [Team Charter](#team-charter)
-
+- [Current Status](#current-status)
+- [Grading](#grading)
+- [Links](#links)
+- [Project Status](#project-status)
+- [Technologies and Branches](#technologies-and-branches)
+- [Installation & Setup](#-installation--setup)
+- [Contributors](#-contributors)
+- [Status & Roadmap](#-status--roadmap)
+- [Meeting History](#-meeting-history)
 
 ## 🔍 About the Project
 DartScoreMate is a web-based application for tracking and enhancing dart games in real-time.  
@@ -81,11 +80,14 @@ Planned deploy of a first app deploy with this week. Some KVPs and Preparing the
   ## 🧰 Tech Stack
   - Python  
   - Flask  
+  - Virtual ebviroment (venv)
   - OpenCV (cv2)  
   - Streamlit (camera testing)  
   - SQL (for saving games)  
   - Docker  
   - Groq API (for recommendations)
+  - .env file with Api key
+
 
   ---
 
@@ -101,20 +103,28 @@ Planned deploy of a first app deploy with this week. Some KVPs and Preparing the
 <details>
   <summary>👾 What you need?</summary>
   
-  - Terminal  
   - Python  
-  - Api key  
-  - DB  
-  - etc.
+  - Flask  
+  - Virtual ebviroment (venv)
+  - OpenCV (cv2)  
+  - Streamlit (camera testing)  
+  - SQL (for saving games)  
+  - Docker  
+  - Groq API (for recommendations)
+  - .env file with Api key
 
 </details>
 
 <details>
   <summary>🤖 How to start?</summary>
   
-  git clone https://gitlab.web.fh-kufstein.ac.at/hillebranddaniel/dartscoremate_softwareentwicklung2.git
-
-  **whole process**
+1. git clone https://gitlab.web.fh-kufstein.ac.at/hillebranddaniel/dartscoremate_softwareentwicklung2.git
+2. Navigate to the project: (cd dartscoremate_softwareentwicklung2)
+3. -m venv venv (source venv/bin/activate)
+4. pip install -r requirements.txt
+5. Add .env file with Api key (GROQ_API_KEY=your_key)
+6. -m src.flask_app.main
+7. Open in browser your http://localhost:5000
 
 </details>
 
