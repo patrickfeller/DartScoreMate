@@ -102,7 +102,7 @@ Planned deploy of a first app deploy with this week. Some KVPs and Preparing the
 
 <details>
   <summary>👾 What you need?</summary>
-  
+
   - Python  
   - Flask  
   - Virtual ebviroment (venv)
@@ -112,7 +112,6 @@ Planned deploy of a first app deploy with this week. Some KVPs and Preparing the
   - Docker  
   - Groq API (for recommendations)
   - .env file with Api key
-
 </details>
 
 <details>
