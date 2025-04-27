@@ -73,7 +73,7 @@ It uses camera-based score detection and provides AI-powered recommendations for
   ✅ monitor package dependencies (conda + uv/requirements.txt)  
   ✅ code documentation (docstrings, comments, ...)  
   ✅ Unittests: best practice = one per function  
-  ✅ Presentation is on May 16th\mathbf{16^{th}}16th with 80-90% of project complete.
+  ✅ Presentation is on **May** $\mathbf{16^{th}}$ with 80-90% of project complete.
 
 </details>
 
@@ -83,7 +83,7 @@ It uses camera-based score detection and provides AI-powered recommendations for
 
 
 # Project status 
-Planned deploy of a first app deploy with this week. Some KVPs and Preparing the Presentation in April.
+First stable version of app is rolled out. Now working on the presentation for Mid-May.
 
 ## Technologies and Branches
 <details>
@@ -143,9 +143,9 @@ We use a structured Git workflow to keep our codebase stable and organized.
                      +-----------+-------------+
                      |        develop          |
                      |  (integration branch)   |
-                     +-----------+-------------+
+                     +-----------^-------------+
                                  |
-      +--------------+-------------------------+--------------+
+      +--------------+-----------^-------------+--------------+
       |                      |        |                       |
       +------------+       +------------+        +------------+
       | feature/   |       | feature/   |        | fix/       |
