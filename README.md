@@ -1,17 +1,29 @@
 # DartScoreMate – Real-time Dart Score Recognition Web App
 
 ## 📚 Table of Contents
-- [About the Project](#about-the-project)
-- [Features](#features)
-- [Current Status](#current-status)
-- [Grading](#grading)
-- [Links](#links)
-- [Project Status](#project-status)
-- [Technologies and Branches](#technologies-and-branches)
-- [Installation & Setup](#-installation--setup)
-- [Contributors](#-contributors)
-- [Status & Roadmap](#-status--roadmap)
-- [Meeting History](#-meeting-history)
+- [DartScoreMate – Real-time Dart Score Recognition Web App](#dartscoremate--real-time-dart-score-recognition-web-app)
+  - [📚 Table of Contents](#-table-of-contents)
+  - [🔍 About the Project](#-about-the-project)
+  - [✨ Features](#-features)
+  - [Features](#features)
+    - [Advanced Features](#advanced-features)
+  - [Current Status](#current-status)
+  - [Grading](#grading)
+  - [Current estimated points are marked in 🔵 blue.](#current-estimated-points-are-marked-in--blue)
+  - [Links](#links)
+- [Project status](#project-status)
+  - [Technologies and Branches](#technologies-and-branches)
+  - [🧰 Tech Stack](#-tech-stack)
+  - [🌿 Branches](#-branches)
+    - [`develop` Branch](#develop-branch)
+    - [`main` Branch](#main-branch)
+    - [`feature` Branches](#feature-branches)
+    - [Branch Naming Conventions](#branch-naming-conventions)
+    - [Typical Workflow](#typical-workflow)
+- [🧪 Installation \& Setup](#-installation--setup)
+  - [👥 Contributors](#-contributors)
+  - [🚦 Status \& Roadmap](#-status--roadmap)
+  - [🗓 Meeting History](#-meeting-history)
 
 ## 🔍 About the Project
 DartScoreMate is a web-based application for tracking and enhancing dart games in real-time.  
@@ -80,7 +92,7 @@ Planned deploy of a first app deploy with this week. Some KVPs and Preparing the
   ## 🧰 Tech Stack
   - Python  
   - Flask  
-  - Virtual ebviroment (venv)
+  - Virtual enviroment (venv)
   - OpenCV (cv2)  
   - Streamlit (camera testing)  
   - SQL (for saving games)  
@@ -92,9 +104,55 @@ Planned deploy of a first app deploy with this week. Some KVPs and Preparing the
   ---
 
   ## 🌿 Branches
-  - main  
-  - develop  
-  - feature_scoredetection
+
+We use a structured Git workflow to keep our codebase stable and organized.
+
+### `develop` Branch
+- **Default and protected branch**
+- Starting point for new branches (features, fixes, etc.)
+- New branches are created from `develop` and later merged back into it.
+- Once a set of features is complete and texted, `develop` is merged into `main`
+
+### `main` Branch
+* **Protected Branch**
+* Contains **stable, production-ready versions** of the project.
+* No direct feature development takes place here
+* Only thoroughly tested code from `develop` is merged into `main`
+
+### `feature` Branches
+
+* Used for developing `**new features** or **bug fixes**.
+* Always created from the `develop` branch
+* After completion, feature branches are merged back into `develop` 
+
+### Branch Naming Conventions
+
+* Features: `feature_your-feature-name` or `feature/your-feature-name`
+* Fixes: `fix_your-fix-name` or `fix/your-fix-name`
+
+### Typical Workflow
+
+```
+                     +------------------------+
+                     |         main           |
+                     |   (stable releases)    |
+                     +-----------^------------+
+                                 |
+                      (merge from develop)
+                                 |
+                     +-----------+-------------+
+                     |        develop          |
+                     |  (integration branch)   |
+                     +-----------+-------------+
+                                 |
+      +--------------+-------------------------+--------------+
+      |                      |        |                       |
+      +------------+       +------------+        +------------+
+      | feature/   |       | feature/   |        | fix/       |
+      | new-api    |       | ui-desing  |        | typo-fix   |
+      +------------+       +------------+        +------------+
+```
+
 
 </details>
 
