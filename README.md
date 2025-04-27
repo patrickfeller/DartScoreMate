@@ -1,31 +1,155 @@
-# DartScoreMate_Softwareentwicklung2
+# DartScoreMate – Real-time Dart Score Recognition Web App
 
-**THIS README STILL NEEDS TO BE WRITTEN OUT**: Sections might include Project Description, Explaination of Key Concepts, Links to Frameworks/important packages, ..
+## 📚 Table of Contents
+- [About the Project](#about-the-project)
+- [Features](#features)
+- [Current Status](#current-status)
+- [Grading](#grading)
+- [Links](#links)
+- [Project Status](#project-status)
+- [Technologies and Branches](#technologies-and-branches)
+- [Installation & Setup](#-installation--setup)
+- [Contributors](#-contributors)
+- [Status & Roadmap](#-status--roadmap)
+- [Meeting History](#-meeting-history)
 
-## Grading
+## 🔍 About the Project
+DartScoreMate is a web-based application for tracking and enhancing dart games in real-time.  
+It uses camera-based score detection and provides AI-powered recommendations for better play.
 
-* OOP & Framework (50)
-* Unittests (5)
-* Requirements / Docker (10)
-* Documentation (10)
-* Gitlab (10)
-* Presentation (15)
 
-### remarks
-- ❌ no hand-in with just one file 
-- ❌ meaningless commit-messages: use standard words (FIX, FEAT, DOCS,...) and effective description
-- ✅ good code logic (design patterns, classes, ...)
-- ✅ monitor package dependencies (conda + uv/`requirements.txt`)
-- ✅ code documentation (docstrings, comments, ...)
-- ✅ Unittests: best practice = one per function
-- ✅ Presentation is on **May $\mathbf{16^{th}}$** with 80-90\% of project complete.
+## ✨ Features
+<details>
+  <summary>✨ Click to expand</summary>
+  
+  ## Features
+  - Create Users ✅  
+  - Track Score ✅  
+  - Save Games (SQL/text files)  
+  - ChatGPT Integration (Prompt: You are a darts export and answer specific questions related to darts)... ✅  
+  - Live-View of Dart Board (static) ✅  
 
-## Authors and acknowledgment
-Patrick Feller, Chris Lehmann, Kathrin Lindauer, Ana Orkić, Daniel Hillebrand
+  ### Advanced Features
+  - Live Video of Dart Board 🆗  
+  - User-Login  
+  - Detect Score from Image  
+  - Personalized Shot Recommendations
+
+</details>
+
+## Current Status
+✅ flask environment  
+✅ docker file  
+✅ captured images of dartboard with arrows  
+✅ streamlit camera caption app
+
+## Grading 
+<details>
+  <summary>Click to expand</summary>
+
+  ## Current estimated points are marked in 🔵 blue.
+  - OOP & Framework (50) 🔵30
+  - Unittests (5) 🔵2
+  - Requirements / Docker (10) 🔵5
+  - Documentation (10) 🔵3
+  - Gitlab (10) 🔵10
+  - Presentation (15) 🔵2
+
+  ❌ no hand-in with just one file  
+  ❌ meaningless commit-messages: use standard words (FIX, FEAT, DOCS,...) and effective description  
+  ✅ good code logic (design patterns, classes, ...)  
+  ✅ monitor package dependencies (conda + uv/requirements.txt)  
+  ✅ code documentation (docstrings, comments, ...)  
+  ✅ Unittests: best practice = one per function  
+  ✅ Presentation is on May 16th\mathbf{16^{th}}16th with 80-90% of project complete.
+
+</details>
 
 ## Links
-* [Moodle-Course Softwaredevelopment II](https://weblearn.fh-kufstein.ac.at/course/view.php?id=2643)
-* [Darts Gitlab Project](https://github.com/TheAlgorithms/Dart)
+[📘 Moodle Course – Softwaredevelopment II](https://weblearn.fh-kufstein.ac.at/course/view.php?id=2643)  
+[🎯 Dart GitHub Inspiration Project](https://github.com/TheAlgorithms/Dart)
 
-## Project status
-project kickoff phase, next meeting 2025-03-10 6pm via TeamsTeams: *Meeting ID* 364 250 302 261, *Password* wu7Ui9TC)
+
+# Project status 
+Planned deploy of a first app deploy with this week. Some KVPs and Preparing the Presentation in April.
+
+## Technologies and Branches
+<details>
+  <summary>Click to expand</summary>
+  
+  ## 🧰 Tech Stack
+  - Python  
+  - Flask  
+  - Virtual ebviroment (venv)
+  - OpenCV (cv2)  
+  - Streamlit (camera testing)  
+  - SQL (for saving games)  
+  - Docker  
+  - Groq API (for recommendations)
+  - .env file with Api key
+
+
+  ---
+
+  ## 🌿 Branches
+  - main  
+  - develop  
+  - feature_scoredetection
+
+</details>
+
+# 🧪 Installation & Setup
+
+<details>
+  <summary>👾 What you need?</summary>
+
+  - Python  
+  - Flask  
+  - Virtual ebviroment (venv)
+  - OpenCV (cv2)  
+  - Streamlit (camera testing)  
+  - SQL (for saving games)  
+  - Docker  
+  - Groq API (for recommendations)
+  - .env file with Api key
+</details>
+
+<details>
+  <summary>🤖 How to start?</summary>
+  
+1. git clone https://gitlab.web.fh-kufstein.ac.at/hillebranddaniel/dartscoremate_softwareentwicklung2.git
+2. Navigate to the project: (cd dartscoremate_softwareentwicklung2)
+3. -m venv venv (source venv/bin/activate)
+4. pip install -r requirements.txt
+5. Add .env file with Api key (GROQ_API_KEY=your_key)
+6. -m src.flask_app.main
+7. Open in browser your http://localhost:5000
+
+</details>
+
+
+## 👥 Contributors
+- Patrick Feller – Flask setup  
+- Chris Lehmann – Unit tests  
+- Kathrin Lindauer – SQL  
+- Ana Orkić – CSS  
+- Daniel Hillebrand – PM, Docker, GitLab  
+- Lyudmila Shamina - 
+
+
+## 🚦 Status & Roadmap
+- ✅ Flask environment  
+- ✅ Docker ready  
+- ✅ Static board + image capture  
+- ✅ Streamlit camera test  
+- ⏳ Score detection in progress  
+- ⏳ Save games to SQL in progress  
+- 📌 First deploy planned April  
+- 🗓 Final presentation: May 16
+
+
+## 🗓 Meeting History
+- 2025-03-10 – Kickoff  
+- 2025-03-17 – Planning  
+- 2025-03-24 – Review  
+- 2025-04-14 – Next meeting
