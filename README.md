@@ -21,7 +21,7 @@
 - ✅ Presentation is on **May $\mathbf{16^{th}}$** with 80-90\% of project complete.
 
 ## Authors and acknowledgment
-Patrick Feller, Chris Lehmann, Kathrin Lindauer, Ana Orkić, Daniel Hillebrand
+Patrick Feller, Chris Lehmann, Kathrin Lindauer, Ana Orkić, Daniel Hillebrand 
 
 ## Links
 * [Moodle-Course Softwaredevelopment II](https://weblearn.fh-kufstein.ac.at/course/view.php?id=2643)
