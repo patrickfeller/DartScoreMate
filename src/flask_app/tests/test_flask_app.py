@@ -91,7 +91,7 @@ class IntegrationTest(unittest.TestCase):
         
         
         # Check if the Browser title updated to "Dart App, New Game"
-        self.assertEqual(self.browser.title, 'Dart App: New Game')
+        self.assertEqual(self.browser.title, 'Dart-App')
 
         # check if the expected route was used
         self.assertEqual( self.browser.current_url, "http://localhost:5000/game/John/Phil/501/1")
