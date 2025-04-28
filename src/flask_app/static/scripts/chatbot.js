@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="chat-messages"></div>
         <div class="chat-input">
             <input type="text" placeholder="Stellen Sie Ihre Frage...">
-            <button>Senden</button>
+            <button>&#x27A4;</button>
         </div>
     `;
     document.body.appendChild(chatWindow);
