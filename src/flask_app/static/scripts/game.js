@@ -62,13 +62,55 @@ function updateDisplay(data) {
   
     // Handle win condition
     if (data.justWon) {
-        const winner = data.winnerIndex === 0 ? 'Player A' : 'Player B';
-        alert(winner + ' has won the game!');
-        // Redirect to homepage after alert is closed
-        window.location.href = '/';
+        const winnerName = data.winnerIndex === 0 ? 'Player A' : 'Player B';
+        showWinnerAnimation(winnerName);
+        
+        // Add winner class to the winning player's box
+        const playerBoxes = document.querySelectorAll('.player-box');
+        playerBoxes[data.winnerIndex].classList.add('winner');
+        
+        // Redirect to homepage after 10 seconds
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 10000);
     }
 }
 
+function createConfetti() {
+    const container = document.querySelector('.winner-animation');
+    for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.animationDelay = Math.random() * 3 + 's';
+        confetti.style.backgroundColor = `hsl(${Math.random() * 60 + 20}, 100%, 50%)`;
+        container.appendChild(confetti);
+    }
+}
+
+function showWinnerAnimation(winnerName) {
+    // Create animation container if it doesn't exist
+    let container = document.querySelector('.winner-animation');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'winner-animation';
+        document.body.appendChild(container);
+    }
+
+    // Create winner name element
+    const winnerElement = document.createElement('div');
+    winnerElement.className = 'winner-name';
+    winnerElement.textContent = winnerName + ' hat gewonnen!';
+    container.appendChild(winnerElement);
+
+    // Add confetti
+    createConfetti();
+
+    // Remove animation after 10 seconds
+    setTimeout(() => {
+        container.remove();
+    }, 10000);
+}
 
 function selectField(type, button) {
     if (type === 'Undo') {

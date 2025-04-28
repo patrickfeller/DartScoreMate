@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template, request, redirect, jsonify, Response
-from . import gamedata
-from . import camera_handling
+import gamedata
+import camera_handling
 import cv2 
 import os
 from dotenv import load_dotenv
 from groq import Groq
-from . import aid_functions_sql 
+import aid_functions_sql 
 from mysql.connector.errors import Error
 
 # load environment variables
@@ -68,7 +68,7 @@ def generate_frames(camera_id):
                 yield (b'--frame\r\n'
                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
     finally:
-        camera.release()
+        camera.release() 
 
 # Routing for video feed
 @app.route('/video_feed')
@@ -121,7 +121,7 @@ def handle_throw():
     just_won, winner_index = gameRef.has_just_won()
 
     # Prepare display score
-    display_score = f"{multiplier}×{base_score}" if multiplier > 1 else str(base_score)
+    display_score = f"{multiplier}x{base_score}" if multiplier > 1 else str(base_score)
     
     return jsonify({
         "received": base_score,
