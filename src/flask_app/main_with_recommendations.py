@@ -3,18 +3,21 @@
 from flask import Flask, render_template, request, redirect, jsonify, Response
 from . import gamedata
 from . import camera_handling
-import cv2 
+import cv2
 import os
 from dotenv import load_dotenv
 from groq import Groq
-from . import aid_functions_sql 
+from . import aid_functions_sql
 from mysql.connector.errors import Error
-from . import recommender
+
+from .checkouts import load_checkout_dict  # ✅ new dictionary
+
+checkout_dict = load_checkout_dict()
 
 # load environment variables
 load_dotenv()
 
-GROQ_API_KEY = os.getenv('GROQ_API_KEY',"")# fallback value emptystring
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', "")  # fallback value emptystring
 
 if GROQ_API_KEY:
     # Debug-Ausgaben
@@ -52,8 +55,10 @@ def boardstatus():
     available_cameras = cam.get_available_cameras()
     # TODO: Camera settings are not yet implemented
     resulution_options = cam.resulution_options
-    fps_options = cam.fps_options    
-    return render_template("board-status.html", avaiable_cameras = available_cameras, resulution_options = resulution_options, fps_options = fps_options)   
+    fps_options = cam.fps_options
+    return render_template("board-status.html", avaiable_cameras=available_cameras,
+                           resulution_options=resulution_options, fps_options=fps_options)
+
 
 # Convert still camera frames to video
 def generate_frames(camera_id):
@@ -67,16 +72,18 @@ def generate_frames(camera_id):
                 ret, buffer = cv2.imencode('.jpeg', frame)
                 frame = buffer.tobytes()
                 yield (b'--frame\r\n'
-                      b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
     finally:
         camera.release()
+
 
 # Routing for video feed
 @app.route('/video_feed')
 def video_feed():
     camera_id = request.args.get('camera_id', default=0, type=int)
-    return Response(generate_frames(camera_id), 
-                   mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(generate_frames(camera_id),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 # Route when Play-button get pressed
 @app.route("/new_game", methods=["POST"])
@@ -88,7 +95,7 @@ def new_game():
     # -> transfer to MariaDB
     # Initialize new game with player names and format
     gameRef.start_game(first_to, format, playerA, playerB)
-    return redirect('/game/'+playerA+'/'+playerB+'/'+str(format)+'/'+str(first_to))
+    return redirect('/game/' + playerA + '/' + playerB + '/' + str(format) + '/' + str(first_to))
 
 
 # Route bevore new_game starts
@@ -96,8 +103,8 @@ def new_game():
 def game(playerA, playerB, format, first_to):
     format = int(format)
     scores = gameRef.get_totals()
-    return render_template('game.html', playerA=playerA, playerB=playerB, format=format, 
-                         scoreA=scores[0], scoreB=scores[1])
+    return render_template('game.html', playerA=playerA, playerB=playerB, format=format,
+                           scoreA=scores[0], scoreB=scores[1])
 
 
 # Route for handling throws
@@ -106,31 +113,34 @@ def handle_throw():
     throw_number = int(request.args.get('throwNumber', 1))
     base_score = int(request.args.get('score', 0))
     multiplier = int(request.args.get('multiplier', 1))
-    score_recommendation = 0 # equal to false in JS
+
     # Create a dart object
     dart = gamedata.Dart(base_score, multiplier, None)  # Position is None as we don't use camera
-    
+
     # Try to make the throw
-    gameRef.dart(dart)    
-    
+    gameRef.dart(dart)
+
     # Get updated game state
     scores = gameRef.get_totals()
     current_throws = gameRef.get_scores()
-    active_player = gameRef.current_leg.player_index
-    current_player_throws = current_throws[active_player]
-    
-    # give score recommendations:
-    if throw_number < 3:
-        double_out_recommendation = recommender.get_recommendation(scores[active_player])
-        if double_out_recommendation and len(double_out_recommendation)<=3-throw_number:
-            score_recommendation = recommender.get_recommendation(scores[active_player])
+    current_player_throws = current_throws[gameRef.current_leg.player_index]
 
     # Check if player has won
     just_won, winner_index = gameRef.has_just_won()
 
     # Prepare display score
     display_score = f"{multiplier}×{base_score}" if multiplier > 1 else str(base_score)
-    
+
+    # ✅ Final shot recommendations (only for 170 or less)
+    if not gameRef.current_leg.change:
+        remaining_score = gameRef.get_current_score(gameRef.current_leg.player_index)
+        if remaining_score in checkout_dict:
+            recommended_throws = checkout_dict[remaining_score][:3]
+        else:
+            recommended_throws = ["-", "-", "-"]
+    else:
+        recommended_throws = ["-", "-", "-"]
+
     return jsonify({
         "received": base_score,
         "multiplier": multiplier,
@@ -139,10 +149,10 @@ def handle_throw():
         "scoreB": scores[1],
         "currentThrows": current_throws,
         "isRoundComplete": gameRef.current_leg.change,
-        "isBust": gameRef.is_bust,  # Add this new flag
+        "isBust": gameRef.is_bust,
         "justWon": just_won,
         "winnerIndex": winner_index if just_won else -1,
-        "scoreRecommendation": score_recommendation
+        "recommendedThrows": recommended_throws
     })
 
 
@@ -156,13 +166,15 @@ def undo_throw():
             "currentThrows": gameRef.get_scores(),
             "scoreA": scores[0],
             "scoreB": scores[1],
-            })
+        })
     return jsonify({'success': False, 'error': 'No throws to undo'}), 400
+
 
 @app.route("/next")
 def next_player():
     # TODO: Implement next functionality, if needed
     return jsonify({"success": True})
+
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -170,14 +182,14 @@ def chat():
         try:
             # Debug-Ausgabe für die Anfrage
             print("Empfangene Anfrage:", request.json)
-            
+
             # Hole die Nachricht aus der Anfrage
             user_message = request.json.get("message", "")
             if not user_message:
                 return jsonify({"error": "Keine Nachricht empfangen"}), 400
-                
+
             print("Verarbeite Nachricht:", user_message)  # Debug-Ausgabe
-            
+
             prompt = """
                         Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte alle Fragen rund 
                         um das Dartspielen, einschließlich Regeln, Techniken, Ausrüstung und Geschichte. 
@@ -196,10 +208,10 @@ def chat():
                 top_p=1,
                 stream=False
             )
-            
+
             response = completion.choices[0].message.content
             print("Antwort von Groq API erhalten:", response)  # Debug-Ausgabe
-            
+
             return jsonify({
                 "response": response
             })
@@ -214,27 +226,30 @@ def chat():
     else:
         return jsonify({"response": "This service is currently not available - no api-key provided."})
 
+
 @app.route("/save_game", methods=["POST"])
 def save_game():
     # list of scores for each player
     score_player_A, score_player_B = gameRef.get_totals()
     # list of players
     player_A, player_B = [player.name for player in gameRef.players]
-    
+
     # played gamemode eg. 501
     game_mode = gameRef.format
-    
+
     conn = aid_functions_sql.get_db_connection()
     cursor = conn.cursor()
-   
+
     try:
-        cursor.execute("INSERT INTO game (game_mode, player_A, player_B, score_player_A, score_player_B) VALUES (%s, %s, %s, %s, %s)", (game_mode, player_A, player_B, score_player_A, score_player_B))
+        cursor.execute(
+            "INSERT INTO game (game_mode, player_A, player_B, score_player_A, score_player_B) VALUES (%s, %s, %s, %s, %s)",
+            (game_mode, player_A, player_B, score_player_A, score_player_B))
         conn.commit()
-    
+
     except Error as e:
         print(f"An error occured, {str(e)}")
         return jsonify({"sucess": False})
-    
+
     finally:
         cursor.close()
         conn.close()
@@ -242,36 +257,5 @@ def save_game():
     return jsonify({"success": True})
 
 
-@app.route('/get_score_recommendation',methods=["POST"])
-def get_score_recommendation():
-    # Get the incoming data (the current score)
-    data = request.get_json()  # This will be the JSON sent from the frontend
-    current_score = data.get('score')
-
-    if current_score:
-        # Get the recommendations based on the current score
-        recommendations = recommender.get_recommendation(current_score)
-
-        # Return the recommendations as a JSON response
-        return jsonify({'scoreRecommendation': recommendations})
-    else:
-        # If no score is provided, return an empty array or error message
-        return jsonify({'scoreRecommendation': 0}), 400
-
-
-@app.route("/current-game")
-def return_to_game():
-    # Check if there's an active game
-    if gameRef.playing:
-        scores = gameRef.get_totals()
-        if scores != -1:  # Game exists
-            playerA = gameRef.players[0].name
-            playerB = gameRef.players[1].name
-            format = gameRef.format
-            first_to = gameRef.first_to
-            return redirect(f'/game/{playerA}/{playerB}/{format}/{first_to}')
-    # If no active game, redirect to new game page
-    return redirect('/play')
-
-if __name__=="__main__":
-    app.run(port=5000,debug=True)
+if __name__ == "__main__":
+    app.run(port=5000, debug=True)

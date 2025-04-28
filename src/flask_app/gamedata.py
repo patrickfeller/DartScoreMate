@@ -150,7 +150,7 @@ class Turn:
             representation[i] = dart_value       
         print(f"Final representation: {representation}")
         return representation
-    
+
     def is_over(self):
         if len(self.darts) == 0:
             return False        
