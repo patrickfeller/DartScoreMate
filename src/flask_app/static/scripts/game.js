@@ -14,7 +14,32 @@ function updatePlayerTurn() {
             box.classList.remove('active');
         }
     });
+    const scoreElementId = currentPlayer === 0 ? "playerA_score" : "playerB_score";
+    const scoreElement = document.getElementById(scoreElementId);
+    const currentScore = parseInt(scoreElement.textContent, 10);
+    // Send the current score to the backend to fetch the score recommendation
+    fetch('/get_score_recommendation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            score: currentScore
+        }),
+    })
+    .then(response => response.json())
+    .then(scoreData => {
+        // Assuming `scoreRecommendation` is an array returned from the backend
+        if (Array.isArray(scoreData.scoreRecommendation)) {
+            lenRecommendation = scoreData.scoreRecommendation.length
+            for (let i = 0; i < lenRecommendation; i++) {
+                document.getElementById('throw' + (i + 1)).textContent = scoreData.scoreRecommendation[i];
+                document.getElementById('throw' + (i + 1)).style.color = 'grey';
+            }
+        }
+    })
 }
+
 
 // Update scores and throws display
 function updateDisplay(data) {
@@ -33,9 +58,26 @@ function updateDisplay(data) {
     
     // Update throws and calculate sum
     let roundSum = 0;
+    let nRecommendations = 0;
     for (let i = 0; i < 3; i++) {
         const throwValue = data.currentThrows[i];
-        document.getElementById('throw' + (i + 1)).textContent = throwValue || '-';
+        const throwElement = document.getElementById('throw' + (i + 1));
+        if (throwValue && throwValue !== "-") {
+            throwElement.textContent = throwValue;
+            throwElement.style.color = 'black';
+        }
+        else {
+            const scoreRecommendation = data.scoreRecommendation;
+            if (scoreRecommendation && nRecommendations < scoreRecommendation.length) {
+                throwElement.textContent = scoreRecommendation[nRecommendations];
+                throwElement.style.color = 'grey';
+                nRecommendations++;
+            }
+            else {
+                throwElement.textContent = "-";
+                throwElement.style.color = 'grey';
+            }
+        }
         console.log("throwValue:", throwValue);
         
         // Add to sum if it's a valid throw
@@ -155,7 +197,7 @@ function handleScore(score) {
                     lastThrows = [];
                 }
             }
-            
+
             // Reset multiplier
             multiplier = 1;
             document.getElementById('double').style.backgroundColor = '';
