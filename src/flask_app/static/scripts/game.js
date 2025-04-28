@@ -4,6 +4,13 @@ let currentPlayer = 0; // 0 for Player A, 1 for Player B
 let isCountdownActive = false; // Track if countdown is active
 let action = '';
 let lastThrows = [];
+let playerNames = [
+    document.getElementById('playerA_name').textContent.trim(),
+    document.getElementById('playerB_name').textContent.trim()
+];
+
+console.log('Player Names:', playerNames[0], 'and', playerNames[1]);
+console.log('Player Names:', playerNames[0], 'and', playerNames[1]);
 
 // Update the UI to show current player's turn
 function updatePlayerTurn() {
@@ -104,8 +111,7 @@ function updateDisplay(data) {
   
     // Handle win condition
     if (data.justWon) {
-        const winnerName = data.winnerIndex === 0 ? 'Player A' : 'Player B';
-        showWinnerAnimation(winnerName);
+        showWinnerAnimation(data.winnerIndex);
         
         // Add winner class to the winning player's box
         const playerBoxes = document.querySelectorAll('.player-box');
@@ -130,7 +136,7 @@ function createConfetti() {
     }
 }
 
-function showWinnerAnimation(winnerName) {
+function showWinnerAnimation(winnerIndex) {
     // Create animation container if it doesn't exist
     let container = document.querySelector('.winner-animation');
     if (!container) {
@@ -139,9 +145,13 @@ function showWinnerAnimation(winnerName) {
         document.body.appendChild(container);
     }
 
+    // Clear previous content
+    container.innerHTML = '';
+
     // Create winner name element
     const winnerElement = document.createElement('div');
     winnerElement.className = 'winner-name';
+    const winnerName = playerNames[winnerIndex] || 'Unknown Player';
     winnerElement.textContent = winnerName + ' hat gewonnen!';
     container.appendChild(winnerElement);
 
