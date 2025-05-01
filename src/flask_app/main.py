@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import Flask, render_template, request, redirect, jsonify, Response
+from flask import Flask, render_template, request, redirect, jsonify, Response, session
 import gamedata
 import camera_handling
 import cv2 
@@ -10,6 +10,10 @@ from groq import Groq
 import aid_functions_sql 
 from mysql.connector.errors import Error
 import recommender
+from flask_session import Session
+
+
+
 
 # load environment variables
 load_dotenv()
@@ -37,6 +41,12 @@ current_throws = {1: 0, 2: 0, 3: 0}
 current_multiplier = 1
 
 app = Flask(__name__)
+app.secret_key = "supersecretkey"  # Kann auch aus .env kommen
+app.config["SESSION_TYPE"] = "filesystem"  # Damit wird die Session serverseitig gespeichert
+app.config["SESSION_PERMANENT"] = False
+Session(app)
+
+Session(app)
 
 
 @app.route("/")
@@ -200,9 +210,25 @@ def chat():
             response = completion.choices[0].message.content
             print("Antwort von Groq API erhalten:", response)  # Debug-Ausgabe
             
+            # Chat-Historie speichern in der Session
+            chat_entry = {
+                "user": user_message,
+                "bot": response
+            }
+
+            # Wenn noch keine Historie existiert, neue Liste starten
+            if "chat_history" not in session:
+                session["chat_history"] = []
+
+            session["chat_history"].append(chat_entry)
+            session.modified = True  # Wichtig, damit Flask die Session wirklich speichert
+            # print("Chat-Historie gespeichert:", session.get("chat_history")) #Debug Assitent um zu Testen ob Historie gespeichert
+
+
             return jsonify({
                 "response": response
             })
+        
         except Exception as e:
             print("Fehler aufgetreten:", str(e))  # Debug-Ausgabe
             print("Fehlertyp:", type(e).__name__)  # Debug-Ausgabe
@@ -213,6 +239,11 @@ def chat():
             }), 500
     else:
         return jsonify({"response": "This service is currently not available - no api-key provided."})
+
+@app.route("/chat_history", methods=["GET"])
+def get_chat_history():
+    chat_history = session.get("chat_history", [])
+    return jsonify(chat_history)
 
 @app.route("/save_game", methods=["POST"])
 def save_game():
@@ -242,7 +273,7 @@ def save_game():
     return jsonify({"success": True})
 
 
-@app.route('/get_score_recommendation',methods=["POST"])
+@app.route('/get_score_recommendation', methods=["POST"])
 def get_score_recommendation():
     # Get the incoming data (the current score)
     data = request.get_json()  # This will be the JSON sent from the frontend
@@ -273,5 +304,6 @@ def return_to_game():
     # If no active game, redirect to new game page
     return redirect('/play')
 
-if __name__=="__main__":
-    app.run(port=5000,debug=True)
+
+if __name__ == "__main__":
+    app.run(port=5000, debug=True)

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     const chatButton = document.createElement('button');
     chatButton.className = 'chat-button';
     chatButton.innerHTML = '<i class="fas fa-robot"></i>';
@@ -23,10 +23,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const input = chatWindow.querySelector('input');
     const sendButton = chatWindow.querySelector('button');
 
-    chatButton.addEventListener('click', () => {
+    // Chatfenster anzeigen/verstecken und Verlauf laden
+    chatButton.addEventListener('click', async () => {
         chatWindow.classList.toggle('active');
+
+        // Wenn geöffnet, lade den bisherigen Verlauf
+        if (chatWindow.classList.contains('active')) {
+            try {
+                const res = await fetch('/chat_history');
+                const history = await res.json();
+
+                messagesContainer.innerHTML = ''; // leeren, um Duplikate zu vermeiden
+
+                history.forEach(entry => {
+                    addMessage(entry.user, true); // User Nachricht
+                    addMessage(entry.bot, false); // Bot Antwort
+                });
+            } catch (err) {
+                console.error("Fehler beim Laden des Chatverlaufs", err);
+                addMessage('Fehler beim Laden des Chatverlaufs.');
+            }
+        }
     });
 
+    // Funktion, um Nachrichten hinzuzufügen
     function addMessage(message, isUser = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
@@ -35,11 +55,12 @@ document.addEventListener('DOMContentLoaded', function() {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
+    // Nachricht senden
     async function sendMessage() {
         const message = input.value.trim();
         if (!message) return;
 
-        addMessage(message, true);
+        addMessage(message, true);  // User Nachricht anzeigen
         input.value = '';
 
         try {
@@ -57,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Fehlertyp:', data.error_type);
                 addMessage(`Entschuldigung, es gab einen Fehler: ${data.error}`);
             } else {
-                addMessage(data.response);
+                addMessage(data.response, false); // Antwort des Bots anzeigen
             }
         } catch (error) {
             console.error('Netzwerkfehler:', error);
@@ -74,4 +95,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Willkommensnachricht
     addMessage('Hallo! Ich bin Mrs. Darts, Ihre persönliche Dart-Expertin. Wie kann ich Ihnen helfen?');
-}); 
+});
