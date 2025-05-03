@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from src.flask_app.main import app
+import src.flask_app.main as main
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -10,6 +10,9 @@ import os
 import subprocess
 import sys
 import chromedriver_autoinstaller
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # in this script, we can add tests for main.py.
 # At the moment, I only created one to work on Gitlab Integration.
@@ -18,7 +21,7 @@ import chromedriver_autoinstaller
 class FlaskUnitTest(unittest.TestCase):
     def setUp(self):
         # initialize the Flask test client
-        self.app = app.test_client()
+        self.app = main.app.test_client()
         self.app.testing = True
 
     def test_get_to_home(self):
@@ -26,6 +29,17 @@ class FlaskUnitTest(unittest.TestCase):
         print("\nTesting home route in Flask App...")
         response = self.app.get("/")
         self.assertEqual(response.status_code, 200)
+
+    @patch.dict(os.environ, {"GROQ_API_KEY": "wrong_key"})
+    def test_chat_no_api_key(self):
+        response = self.app.post('/chat', json={"message": "Hallo"})
+        self.assertEqual(response.status_code,401)
+
+    def test_chat_valid_api_key(self):
+        response = self.app.post('/chat', json={"message": "Hallo"})
+        self.assertEqual(response.status_code,200)
+        self.assertIn("Mrs. Darts", response.data)
+        print('YES')
 
     def test_next_player(self):
         print("\nTesting next player route in Flask App...")

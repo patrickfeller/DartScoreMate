@@ -14,19 +14,6 @@ from . import recommender
 # load environment variables
 load_dotenv()
 
-GROQ_API_KEY = os.getenv('GROQ_API_KEY',"")# fallback value emptystring
-
-if GROQ_API_KEY:
-    # Debug-Ausgaben
-    print("Aktuelles Verzeichnis:", os.getcwd())
-    print("Umgebungsvariablen geladen:", os.getenv('OPENAI_API_KEY') is not None)
-    print("API Key Länge:", len(os.getenv('OPENAI_API_KEY', '')))
-
-    # Groq Client Setup
-    client = Groq(
-        api_key=GROQ_API_KEY
-    )
-
 # Shared thread references, currently not clear why needed
 adminRef = gamedata.Admin()
 gameRef = gamedata.Game()
@@ -166,7 +153,12 @@ def next_player():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    if GROQ_API_KEY:
+    api_key = os.getenv("GROQ_API_KEY", "")
+    if api_key:
+            # Groq Client Setup
+        client = Groq(
+            api_key=api_key
+        )
         try:
             # Debug-Ausgabe für die Anfrage
             print("Empfangene Anfrage:", request.json)
