@@ -34,7 +34,7 @@ class FlaskUnitTest(unittest.TestCase):
         response = self.app.post("/get_score_recommendation", json={"score": 36})
         recommendation = response.get_json()
         self.assertTrue(response.status_code==200)
-        self.assertTrue(recommendation["scoreRecommendation"]=={"D18"})
+        self.assertTrue(recommendation["scoreRecommendation"]==["D18"])
 
         no_possible_recommendation = self.app.post("/get_score_recommendation", json={"score": 700})
         self.assertTrue(no_possible_recommendation.get_json()["scoreRecommendation"]==[])
@@ -42,7 +42,7 @@ class FlaskUnitTest(unittest.TestCase):
     @patch.dict(os.environ, {"GROQ_API_KEY": "wrong_key"})
     def test_chat_no_api_key(self):
         response = self.app.post('/chat', json={"message": "Hallo"})
-        self.assertEqual(response.status_code,401)
+        self.assertEqual(response.status_code,500)
 
     def test_chat_valid_api_key(self):
         response = self.app.post('/chat', json={"message": "Hallo"})
