@@ -194,13 +194,22 @@ def chat():
                         Sei freundlich und hilfreich."
             """
 
+            # Starte die Nachrichtenliste mit dem Systemprompt
+            messages = [{"role": "system", "content": prompt}]
+
+           # Füge bisherige Chat-Historie hinzu
+            history = session.get("chat_history", [])
+
+            for entry in history:
+                messages.append({"role": "user", "content": entry["user"]})
+                messages.append({"role": "assistant", "content": entry["bot"]})
+
+            messages.append({"role": "user", "content": user_message})
+ 
             # Groq API aufrufen
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": prompt},
-                    {"role": "user", "content": user_message}
-                ],
+                messages=messages,
                 temperature=0.7,
                 max_completion_tokens=1024,
                 top_p=1,
