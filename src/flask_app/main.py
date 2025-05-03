@@ -304,6 +304,10 @@ def return_to_game():
     # If no active game, redirect to new game page
     return redirect('/play')
 
+@app.route("/reset_chat", methods=["POST"])
+def reset_chat():
+    session.pop("chat_history", None)
+    return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

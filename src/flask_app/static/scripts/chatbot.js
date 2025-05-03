@@ -16,12 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="text" placeholder="Stellen Sie Ihre Frage...">
             <button>&#x27A4;</button>
         </div>
+        <button class="reset-button">Chatverlauf zurücksetzen</button>
     `;
     document.body.appendChild(chatWindow);
 
     const messagesContainer = chatWindow.querySelector('.chat-messages');
     const input = chatWindow.querySelector('input');
     const sendButton = chatWindow.querySelector('button');
+    const resetButton = chatWindow.querySelector('.reset-button');
 
     // Chatfenster anzeigen/verstecken und Verlauf laden
     chatButton.addEventListener('click', async () => {
@@ -92,6 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
             sendMessage();
         }
     });
+
+// Verlauf zurücksetzen
+resetButton.addEventListener('click', async () => {
+    try {
+        await fetch('/reset_chat', { method: 'POST' });
+        messagesContainer.innerHTML = '';
+        addMessage('Der Chatverlauf wurde zurückgesetzt.');
+    } catch (err) {
+        console.error("Fehler beim Zurücksetzen des Chatverlaufs", err);
+        addMessage('Fehler beim Zurücksetzen des Verlaufs.');
+    }
+});
+
 
     // Willkommensnachricht
     addMessage('Hallo! Ich bin Mrs. Darts, Ihre persönliche Dart-Expertin. Wie kann ich Ihnen helfen?');
