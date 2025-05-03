@@ -37,7 +37,7 @@ class FlaskUnitTest(unittest.TestCase):
         self.assertTrue(recommendation["scoreRecommendation"]==["D18"])
 
         no_possible_recommendation = self.app.post("/get_score_recommendation", json={"score": 700})
-        self.assertTrue(no_possible_recommendation.get_json()["scoreRecommendation"]==[])
+        self.assertTrue(no_possible_recommendation.get_json()["scoreRecommendation"] is None)
 
     @patch.dict(os.environ, {"GROQ_API_KEY": "wrong_key"})
     def test_chat_no_api_key(self):
