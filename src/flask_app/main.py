@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template, request, redirect, jsonify, Response, session
-import gamedata
-import camera_handling
+from . import gamedata
+from . import camera_handling
 import cv2 
 import os
 from dotenv import load_dotenv
 from groq import Groq
-import aid_functions_sql 
+from . import aid_functions_sql 
 from mysql.connector.errors import Error
-import recommender
+from . import recommender
 from flask_session import Session
 
 
