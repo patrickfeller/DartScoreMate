@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import src.flask_app.main as main
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 import shutil
 from flask_session import Session
 import glob
+import json
 
 load_dotenv()
 
@@ -32,8 +33,11 @@ class FlaskUnitTest(unittest.TestCase):
 
     def test_get_to_home(self):
         # make a get request to the route "/" of the test client and check if status code is 200
-        print("\nTesting home route in Flask App...")
+        print("\nTesting home route via '/' in Flask App...")
         response = self.app.get("/")
+        self.assertEqual(response.status_code, 200)
+        print("\n Testing home route again with /play")
+        response = self.app.get("/play")
         self.assertEqual(response.status_code, 200)
 
     def test_score_recommendations(self):
@@ -130,14 +134,6 @@ class FlaskUnitTest(unittest.TestCase):
             self.assertIn("Hallo", contents)
             self.assertIn("Mrs. Darts", contents)
 
-    """
-    def test_chat_history(self):
-        self.app.post("/chat", json={"message": "Hi, my name is Bob"})
-        response = self.app.post("/chat", json={"message": "What is my name?"})
-        response_text = response.data.decode("utf-8")
-        self.assertIn("Bob", response_text)
-        self.assertTrue()
-    """
     def test_next_player(self):
         print("\nTesting next player route in Flask App...")
         resonse = self.app.get("/next")
@@ -156,6 +152,49 @@ class FlaskUnitTest(unittest.TestCase):
         self.assertIn(b"Max", response.data)
         self.assertIn(b"Moritz", response.data)
     
+    @patch("src.flask_app.main.camera_handling.camera")
+    def test_board_status_route(self, mock_camera_class):
+        # Mock camera instance
+        mock_camera = MagicMock()
+        mock_camera.get_available_cameras.return_value = ["Camera 0", "Camera 1"]
+        mock_camera.resulution_options = ["640x480", "1280x720"]
+        mock_camera.fps_options = [30, 60]
+
+        # Assign mock instance to class constructor return
+        mock_camera_class.return_value = mock_camera
+
+        # Make the request
+        response = self.app.get("/board-status")
+        
+        # Validate response
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode("utf-8")
+        self.assertIn("Camera 0", html)
+        self.assertIn("1280x720", html)
+
+    def test_real_dart_throw_scenario(self):
+        # Simulate a valid dart throw: single 20
+        response = self.app.get("/throw?throwNumber=1&score=20&multiplier=1")
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+
+        # Basic assertions about the response
+        self.assertEqual(data["received"], 20)
+        self.assertEqual(data["multiplier"], 1)
+        self.assertEqual(data["displayScore"], "20")
+        self.assertIn("scoreA", data)
+        self.assertIn("scoreB", data)
+        self.assertIn("currentThrows", data)
+        self.assertIsInstance(data["currentThrows"], list)
+        self.assertIn("isBust", data)
+        self.assertIn("justWon", data)
+        self.assertIn("scoreRecommendation", data)
+
+        print("Game state after throw:", data)
+
+        # verify player A's score decreased from 501 (default start)
+        self.assertLess(data["scoreA"], 501)
 
 class IntegrationTest(unittest.TestCase):
 
