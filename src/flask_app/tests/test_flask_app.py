@@ -19,7 +19,6 @@ import json
 
 load_dotenv()
 
-
 class FlaskUnitTest(unittest.TestCase):
     def setUp(self):
         # initialize the Flask test client
@@ -253,11 +252,11 @@ class FlaskUnitTest(unittest.TestCase):
 
 
 class IntegrationTest(unittest.TestCase):
-
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         os.environ['FLASK_APP'] = 'src.flask_app.main' 
         # initialize the Flask test client
-        self.flask_process = subprocess.Popen(['python', '-m', 'flask', 'run', '--port', '5000'])
+        cls.flask_process = subprocess.Popen(['python', '-m', 'flask', 'run', '--port', '5000'])
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
@@ -268,15 +267,16 @@ class IntegrationTest(unittest.TestCase):
             options.binary_location = "/usr/bin/chromium"
         else:
             chromedriver_autoinstaller.install()
-        self.browser =  webdriver.Chrome(options=options)
-        self.browser.implicitly_wait(20)
+        cls.browser =  webdriver.Chrome(options=options)
+        cls.browser.implicitly_wait(20)
 
-    def tearDown(self):
-        self.browser.quit()
-        self.flask_process.terminate()
+    @classmethod
+    def tearDownClass(cls):
+        cls.browser.quit()
+        cls.flask_process.terminate()
 
 
-    def test_game(self):
+    def test_start_and_play(self):
         self.browser.get("http://localhost:5000/play")
         time.sleep(3)
         self.browser.implicitly_wait(2)
@@ -305,6 +305,18 @@ class IntegrationTest(unittest.TestCase):
 
         self.assertTrue(player1_score=="501"), "Expect player A to start with score 501"
         self.assertTrue(player2_score=="501"), "Expected player B to start with score 501"
+
+    def test_undo_throw(self):
+        player1_score_current = self.browser.find_element(By.ID, "playerA_score").text
+        double_btn = self.browser.find_element(By.ID, "double")
+        double_btn.click()
+        self.browser.find_element(By.XPATH, "//button[text()='18']").click()
+        player1_score_after = self.browser.find_element(By.ID, "playerA_score").text
+        self.assertTrue(int(player1_score_after) == int(player1_score_current)-36), "pressing double 18 did not result in score reduction of 36"
+        undo_btn = self.browser.find_element(By.XPATH, "//button[contains(text(), 'Undo')]")
+        undo_btn.click()
+        player1_score_after = self.browser.find_element(By.ID, "playerA_score").text
+        self.assertEqual(player1_score_current,player1_score_after), "Undo button did not revert score of last throw correctly"
 
 if __name__ == "__main__":
     unittest.main()
