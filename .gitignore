@@ -10,3 +10,6 @@ __pycache__/
 # env
 *.venv
 .gitignore
+
+#Flask Session
+flask_session/
