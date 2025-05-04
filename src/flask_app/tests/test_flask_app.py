@@ -14,9 +14,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# in this script, we can add tests for main.py.
-# At the moment, I only created one to work on Gitlab Integration.
-
 
 class FlaskUnitTest(unittest.TestCase):
     def setUp(self):
@@ -38,6 +35,31 @@ class FlaskUnitTest(unittest.TestCase):
 
         no_possible_recommendation = self.app.post("/get_score_recommendation", json={"score": 700})
         self.assertTrue(no_possible_recommendation.get_json()["scoreRecommendation"] is None)
+
+    def test_score_recommendations_bad_request(self):
+        response = self.app.post("/get_score_recommendation",
+                                json={}  # sends empty JSON with correct Content-Type
+                                )
+        self.assertEqual(response.status_code, 400)
+
+    def test_new_game(self):
+        # Define the form data expected by the route
+        form_data = {
+            'game-type': '501',
+            'legs': '1',
+            'player1name': 'Alice',
+            'player2name': 'Bob'
+        }
+
+        # Send POST request to the /new_game route
+        response = self.app.post('/new_game', data=form_data, follow_redirects=False)
+
+        # Check if the response is a redirect (302)
+        self.assertEqual(response.status_code, 302)
+
+        # Check if the redirect location is correct
+        self.assertIn('/game/Alice/Bob/501/1', response.headers['Location'])
+
 
     @patch.dict(os.environ, {"GROQ_API_KEY": "wrong_key"})
     def test_chat_no_api_key(self):
