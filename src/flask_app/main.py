@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template, request, redirect, jsonify, Response, session
-from . import gamedata
-from . import camera_handling
+import gamedata
+import camera_handling
 import cv2 
 import os
 from dotenv import load_dotenv
 from groq import Groq
-from . import aid_functions_sql 
+import aid_functions_sql 
 from mysql.connector.errors import Error
-from . import recommender
+import recommender
 from flask_session import Session
 
 
@@ -316,6 +316,10 @@ def return_to_game():
 @app.route("/reset_chat", methods=["POST"])
 def reset_chat():
     session.pop("chat_history", None)
+    return jsonify({"status": "ok"})
+
+@app.route("/load_game",methods=["POST"])
+def load_game():
     return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
