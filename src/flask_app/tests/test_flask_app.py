@@ -36,7 +36,6 @@ class FlaskUnitTest(unittest.TestCase):
         game.start_game(first_to=1, format=501, name_a="Alice", name_b="Bob")
         main.gameRef = game
 
-    """
     def test_get_to_home(self):
         # make a get request to the route "/" of the test client and check if status code is 200
         print("\nTesting home route via '/' in Flask App...")
@@ -205,7 +204,7 @@ class FlaskUnitTest(unittest.TestCase):
 
         # verify player A's score decreased from 501 (default start)
         self.assertLess(data["scoreA"], 501)
-    """
+    
     def test_undo_throw_success(self):
         # Arrange: start the game
         self.initialize_game()
@@ -252,7 +251,7 @@ class FlaskUnitTest(unittest.TestCase):
         self.assertFalse(data["success"])
         self.assertIn("error", data)
 
-"""
+
 class IntegrationTest(unittest.TestCase):
 
     def setUp(self):
@@ -306,7 +305,6 @@ class IntegrationTest(unittest.TestCase):
 
         self.assertTrue(player1_score=="501"), "Expect player A to start with score 501"
         self.assertTrue(player2_score=="501"), "Expected player B to start with score 501"
-    """
 
 if __name__ == "__main__":
     unittest.main()
