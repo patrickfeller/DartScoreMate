@@ -6,6 +6,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 import time
 import os
 import subprocess
@@ -254,69 +257,146 @@ class FlaskUnitTest(unittest.TestCase):
 class IntegrationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        os.environ['FLASK_APP'] = 'src.flask_app.main' 
-        # initialize the Flask test client
-        cls.flask_process = subprocess.Popen(['python', '-m', 'flask', 'run', '--port', '5000'])
+        os.environ['FLASK_APP'] = 'src.flask_app.main'
+        # Start Flask server once
+        cls.flask_process = subprocess.Popen(
+            ['python', '-m', 'flask', 'run', '--port', '5000'],
+            stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
+        )
+        # Give Flask time to come up
+        WebDriverWaitTimeout = 5
+        WebDriverWait(cls, WebDriverWaitTimeout).until(lambda _: True)
+
+        # Install ChromeDriver and launch browser
+        chromedriver_autoinstaller.install()
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
-        # Only set binary location for CI-CD
         if sys.platform.startswith("linux"):
-            chromedriver_autoinstaller.install()
             options.binary_location = "/usr/bin/chromium"
-        else:
-            chromedriver_autoinstaller.install()
-        cls.browser =  webdriver.Chrome(options=options)
-        cls.browser.implicitly_wait(20)
+
+        cls.browser = webdriver.Chrome(options=options)
+        cls.wait = WebDriverWait(cls.browser, 10)
 
     @classmethod
     def tearDownClass(cls):
         cls.browser.quit()
         cls.flask_process.terminate()
+        cls.flask_process.wait()
 
+    def start_game(self):
+        # Navigate and start a new game
+        self.browser.get("http://localhost:5000/play")
+        # wait for form inputs
+        self.wait.until(EC.visibility_of_element_located((By.ID, "player1name")))
+        self.browser.find_element(By.ID, "player1name").send_keys("John")
+        self.browser.find_element(By.ID, "player2name").send_keys("Phil")
+        self.browser.find_element(
+            By.CSS_SELECTOR, "input[type='submit'][value='Play']"
+        ).click()
+        # wait for redirect URL
+        self.wait.until(EC.url_contains("/game/John/Phil/501/1"))
 
     def test_start_and_play(self):
-        self.browser.get("http://localhost:5000/play")
-        time.sleep(3)
-        self.browser.implicitly_wait(2)
-        player1_input = self.browser.find_element(By.ID, "player1name")
-        player2_input = self.browser.find_element(By.ID, "player2name")
-        
-        # fill in player names
-        player1_input.send_keys("John")
-        player2_input.send_keys("Phil")
+        self.start_game()
+        # verify title and scores
+        self.wait.until(EC.title_is("Dart-App"))
+        self.assertEqual(self.browser.current_url, "http://localhost:5000/game/John/Phil/501/1")
 
-        # press submit button
+        p1 = self.wait.until(EC.visibility_of_element_located((By.ID, "playerA_score"))).text
+        p2 = self.browser.find_element(By.ID, "playerB_score").text
+        self.assertEqual(p1, "501")
+        self.assertEqual(p2, "501")
 
-        submit_button = self.browser.find_element(By.CSS_SELECTOR, "input[type='submit'][value='Play']")
-        submit_button.click()
-        time.sleep(3)
-        
-        
-        # Check if the Browser title updated to "Dart App, New Game"
-        self.assertEqual(self.browser.title, 'Dart-App')
+    def test_throw_and_undo(self):
+        self.start_game()
 
-        # check if the expected route was used
-        self.assertEqual( self.browser.current_url, "http://localhost:5000/game/John/Phil/501/1")
+        # initial score
+        initial = int(self.wait.until(
+            EC.visibility_of_element_located((By.ID, "playerA_score"))
+        ).text)
 
-        player1_score = self.browser.find_element(By.ID, "playerA_score").text
-        player2_score = self.browser.find_element(By.ID, "playerB_score").text
+        # throw double 18
+        self.wait.until(EC.element_to_be_clickable((By.ID, "double"))).click()
+        self.wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='18']"))).click()
 
-        self.assertTrue(player1_score=="501"), "Expect player A to start with score 501"
-        self.assertTrue(player2_score=="501"), "Expected player B to start with score 501"
+        # wait for score update
+        self.wait.until(EC.text_to_be_present_in_element(
+            (By.ID, "playerA_score"), str(initial - 36)
+        ))
 
-    def test_undo_throw(self):
-        player1_score_current = self.browser.find_element(By.ID, "playerA_score").text
-        double_btn = self.browser.find_element(By.ID, "double")
-        double_btn.click()
-        self.browser.find_element(By.XPATH, "//button[text()='18']").click()
-        player1_score_after = self.browser.find_element(By.ID, "playerA_score").text
-        self.assertTrue(int(player1_score_after) == int(player1_score_current)-36), "pressing double 18 did not result in score reduction of 36"
-        undo_btn = self.browser.find_element(By.XPATH, "//button[contains(text(), 'Undo')]")
-        undo_btn.click()
-        player1_score_after = self.browser.find_element(By.ID, "playerA_score").text
-        self.assertEqual(player1_score_current,player1_score_after), "Undo button did not revert score of last throw correctly"
+        # undo
+        self.wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Undo')]"))).click()
+
+        # wait for revert
+        self.wait.until(EC.text_to_be_present_in_element(
+            (By.ID, "playerA_score"), str(initial)
+        ))
+        final = int(self.browser.find_element(By.ID, "playerA_score").text)
+        self.assertEqual(final, initial)
+
+    def test_start_new_game(self):
+        self.start_game()
+        # click New Game link
+        new_game = self.wait.until(EC.element_to_be_clickable((
+            By.LINK_TEXT, "New Game"
+        )))
+        new_game.click()
+        # wait for play page
+        self.wait.until(EC.url_contains("/play"))
+        self.assertTrue(self.browser.current_url.endswith("/play"))
+
+    def test_board_status_and_return_to_game(self):
+        self.start_game()
+
+        # click Board Status
+        board = self.wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Board Status")))
+        board.click()
+        # wait for board-status URL
+        self.wait.until(EC.url_contains("/board-status"))
+
+        # check cams
+        for cam_id in ("camera_a_feed", "camera_b_feed", "camera_c_feed"):
+            elem = self.wait.until(EC.visibility_of_element_located((By.ID, cam_id)))
+            self.assertTrue(elem.is_displayed(), f"{cam_id} not visible")
+
+        # click Return to Game
+        rtn = self.wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Return to Game")))
+        rtn.click()
+        self.wait.until(EC.url_contains("/game/John/Phil/501/1"))
+        self.assertEqual(self.browser.find_element(By.ID, "playerA_score").text, "501")
+
+    def test_chat_chatbot(self):
+        # 1) Wait for the chat button to be present in the DOM
+        chat_btn = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "button.chat-button"))
+        )
+        # 2) Assert it’s displayed
+        self.assertTrue(chat_btn.is_displayed(), "Chat button should be visible")
+
+        # 3) Wait until it’s clickable, then click
+        WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "button.chat-button"))
+        ).click()
+
+        # Wait until the input field is present
+        input_field = WebDriverWait(self.browser, 10).until(
+            EC.visibility_of_element_located(
+                (By.XPATH, "//input[@type='text' and @placeholder='Stellen Sie Ihre Frage...']")
+            )
+        )
+        # Assert it's visible
+        self.assertTrue(input_field.is_displayed(), "Input field should be visible")
+
+        # Wait until the reset button is present
+        reset_button = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//button[@class='reset-button' and text()='Chatverlauf zurücksetzen']"))
+        )
+
+        # Assert it's visible
+        self.assertTrue(reset_button.is_displayed(), "Reset button should be visible")
+        reset_button.click()
 
 if __name__ == "__main__":
     unittest.main()
