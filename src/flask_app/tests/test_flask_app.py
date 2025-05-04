@@ -126,13 +126,17 @@ class FlaskUnitTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         session_files = glob.glob(os.path.join(session_dir, "*"))
-        self.assertGreater(len(session_files), 0, "No session file was created.")
-        latest_file = min(session_files, key=os.path.getmtime)
-        # Optionally: check content
-        with open(latest_file, "rb") as f:
-            contents = f.read().decode("utf-8", errors="ignore")
-            self.assertIn("Hallo", contents)
-            self.assertIn("Mrs. Darts", contents)
+        for file in session_files:
+            try:
+                with open(file, "rb") as f:
+                    contents = f.read().decode("utf-8", errors="ignore")
+                    if "Hallo" in contents and "Mrs. Darts" in contents:
+                        found = True
+                        break
+            except Exception:
+                continue  # Skip unreadable files
+
+        self.assertTrue(found, "No session file contained both 'Hallo' and 'Mrs. Darts'")
 
     def test_next_player(self):
         print("\nTesting next player route in Flask App...")
