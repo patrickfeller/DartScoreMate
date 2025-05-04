@@ -11,6 +11,9 @@ import subprocess
 import sys
 import chromedriver_autoinstaller
 from dotenv import load_dotenv
+import shutil
+from flask_session import Session
+import glob
 
 load_dotenv()
 
@@ -18,8 +21,14 @@ load_dotenv()
 class FlaskUnitTest(unittest.TestCase):
     def setUp(self):
         # initialize the Flask test client
+        main.app.config["TESTING"] = True
+        main.app.config["SESSION_TYPE"] = "filesystem"
+        main.app.config["SESSION_FILE_DIR"] = "./flask_session"
+        main.app.config["SESSION_PERMANENT"] = False
+        Session(main.app)  # <-- important
+        main.app.config["SECRET_KEY"] = "supersecretkey"
         self.app = main.app.test_client()
-        self.app.testing = True
+
 
     def test_get_to_home(self):
         # make a get request to the route "/" of the test client and check if status code is 200
@@ -65,21 +74,70 @@ class FlaskUnitTest(unittest.TestCase):
         response = self.app.post('/chat', json={"message": "Hallo"})
         self.assertEqual(response.status_code,401)
 
-    def test_chat_valid_api_key(self):
+    @patch("src.flask_app.main.Groq")  
+    def test_chat_valid_api_key(self, mock_groq_class):
+        # Arrange: Mock Groq client response
+        mock_client = mock_groq_class.return_value
+        mock_completion = mock_client.chat.completions.create.return_value
+
+        # Simulated Groq response structure
+        mock_completion.choices = [
+            type("obj", (object,), {
+                "message": type("msg", (object,), {"content": "Hi, ich bin Mrs. Darts. Wie kann ich helfen?"})
+            })()
+        ]
+
+        # Act: Make request to Flask route
         response = self.app.post('/chat', json={"message": "Hallo"})
-        self.assertEqual(response.status_code,200)
+
+        # Assert: Validate HTTP and content
+        self.assertEqual(response.status_code, 200)
         self.assertIn("Mrs. Darts", response.data.decode("utf-8"))
 
     def test_chat_empty_chat_message(self):
         response = self.app.post("/chat", json = {})
         self.assertEqual(response.status_code,400)
 
+    @patch("src.flask_app.main.Groq")  
+    def test_chat_session_saved_to_disk(self, mock_groq_class):
+        # Arrange
+        session_dir = "./flask_session"
+        if os.path.exists(session_dir):
+            shutil.rmtree(session_dir)
+        os.makedirs(session_dir)
+
+        # Mock Groq client
+        mock_client = mock_groq_class.return_value
+        mock_completion = mock_client.chat.completions.create.return_value
+        mock_completion.choices = [
+            type("obj", (object,), {
+                "message": type("msg", (object,), {"content": "Hi, ich bin Mrs. Darts."})
+            })()
+        ]
+
+        # Act
+        response = self.app.post('/chat', json={"message": "Hallo"})
+
+        # Assert
+        self.assertEqual(response.status_code, 200)
+
+        session_files = glob.glob(os.path.join(session_dir, "*"))
+        self.assertGreater(len(session_files), 0, "No session file was created.")
+        latest_file = min(session_files, key=os.path.getmtime)
+        # Optionally: check content
+        with open(latest_file, "rb") as f:
+            contents = f.read().decode("utf-8", errors="ignore")
+            self.assertIn("Hallo", contents)
+            self.assertIn("Mrs. Darts", contents)
+
+    """
     def test_chat_history(self):
         self.app.post("/chat", json={"message": "Hi, my name is Bob"})
         response = self.app.post("/chat", json={"message": "What is my name?"})
         response_text = response.data.decode("utf-8")
         self.assertIn("Bob", response_text)
-
+        self.assertTrue()
+    """
     def test_next_player(self):
         print("\nTesting next player route in Flask App...")
         resonse = self.app.get("/next")
