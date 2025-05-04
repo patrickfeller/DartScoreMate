@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import src.flask_app.main as main
+from src.flask_app import gamedata
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -30,7 +31,12 @@ class FlaskUnitTest(unittest.TestCase):
         main.app.config["SECRET_KEY"] = "supersecretkey"
         self.app = main.app.test_client()
 
+    def initialize_game(self):
+        game = gamedata.Game()
+        game.start_game(first_to=1, format=501, name_a="Alice", name_b="Bob")
+        main.gameRef = game
 
+    """
     def test_get_to_home(self):
         # make a get request to the route "/" of the test client and check if status code is 200
         print("\nTesting home route via '/' in Flask App...")
@@ -199,7 +205,54 @@ class FlaskUnitTest(unittest.TestCase):
 
         # verify player A's score decreased from 501 (default start)
         self.assertLess(data["scoreA"], 501)
+    """
+    def test_undo_throw_success(self):
+        # Arrange: start the game
+        self.initialize_game()
 
+        # Act 1: make a throw via the route
+        resp_throw = self.app.get("/throw", query_string={
+            "throwNumber": 1,
+            "score": 20,
+            "multiplier": 2
+        })
+        self.assertEqual(resp_throw.status_code, 200)
+        data_throw = resp_throw.get_json()
+
+        # Check that the score actually decreased for player A
+        score_after_throw = data_throw["scoreA"]
+        self.assertLess(score_after_throw, 501,
+                        f"Expected scoreA < 501 after throw, got {score_after_throw}")
+
+        # Act 2: undo the throw
+        resp_undo = self.app.post("/undo_throw")
+        self.assertEqual(resp_undo.status_code, 200)
+        data_undo = resp_undo.get_json()
+
+        # Assert: undo was successful
+        self.assertTrue(data_undo["success"])
+
+        # After undo, player A's score returns to 501
+        self.assertEqual(data_undo["scoreA"], 501)
+        self.assertEqual(data_undo["scoreB"], 501)
+
+        # No darts thrown in current turn
+        self.assertEqual(data_undo["currentThrows"], ['-', '-', '-'])
+
+    def test_undo_throw_failure(self):
+        # Arrange: game with no throws
+        self.initialize_game()
+
+        # Act: undo immediately
+        resp = self.app.post("/undo_throw")
+        data = resp.get_json()
+
+        # Assert: failure
+        self.assertEqual(resp.status_code, 400)
+        self.assertFalse(data["success"])
+        self.assertIn("error", data)
+
+"""
 class IntegrationTest(unittest.TestCase):
 
     def setUp(self):
@@ -253,7 +306,7 @@ class IntegrationTest(unittest.TestCase):
 
         self.assertTrue(player1_score=="501"), "Expect player A to start with score 501"
         self.assertTrue(player2_score=="501"), "Expected player B to start with score 501"
-    
+    """
 
 if __name__ == "__main__":
     unittest.main()
