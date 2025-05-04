@@ -60,16 +60,25 @@ class FlaskUnitTest(unittest.TestCase):
         # Check if the redirect location is correct
         self.assertIn('/game/Alice/Bob/501/1', response.headers['Location'])
 
-
     @patch.dict(os.environ, {"GROQ_API_KEY": "wrong_key"})
-    def test_chat_no_api_key(self):
+    def test_chat_wrong_api_key(self):
         response = self.app.post('/chat', json={"message": "Hallo"})
-        self.assertEqual(response.status_code,500)
+        self.assertEqual(response.status_code,401)
 
     def test_chat_valid_api_key(self):
         response = self.app.post('/chat', json={"message": "Hallo"})
         self.assertEqual(response.status_code,200)
         self.assertIn("Mrs. Darts", response.data.decode("utf-8"))
+
+    def test_chat_empty_chat_message(self):
+        response = self.app.post("/chat", json = {})
+        self.assertEqual(response.status_code,400)
+
+    def test_chat_history(self):
+        self.app.post("/chat", json={"message": "Hi, my name is Bob"})
+        response = self.app.post("/chat", json={"message": "What is my name?"})
+        response_text = response.data.decode("utf-8")
+        self.assertIn("Bob", response_text)
 
     def test_next_player(self):
         print("\nTesting next player route in Flask App...")
@@ -88,9 +97,7 @@ class FlaskUnitTest(unittest.TestCase):
 
         self.assertIn(b"Max", response.data)
         self.assertIn(b"Moritz", response.data)
-        # derzeit noch Fehler aufgrund von MagicMock
-        # self.assertIn(b"45", response.data)
-        # self.assertIn(b"60", response.data)
+    
 
 class IntegrationTest(unittest.TestCase):
 

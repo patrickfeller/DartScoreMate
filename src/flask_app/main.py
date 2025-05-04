@@ -6,7 +6,7 @@ from . import camera_handling
 import cv2 
 import os
 from dotenv import load_dotenv
-from groq import Groq
+from groq import Groq, AuthenticationError
 from . import aid_functions_sql 
 from mysql.connector.errors import Error
 from . import recommender
@@ -197,16 +197,18 @@ def chat():
                 messages.append({"role": "assistant", "content": entry["bot"]})
 
             messages.append({"role": "user", "content": user_message})
- 
-            # Groq API aufrufen
-            completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=messages,
-                temperature=0.7,
-                max_completion_tokens=1024,
-                top_p=1,
-                stream=False
-            )
+            try:
+                # Groq API aufrufen
+                completion = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=messages,
+                    temperature=0.7,
+                    max_completion_tokens=1024,
+                    top_p=1,
+                    stream=False
+                )
+            except AuthenticationError as auth_error:
+                return jsonify({"error": "Unauthorized API key", "details": str(auth_error)}), 401
             
             response = completion.choices[0].message.content
             print("Antwort von Groq API erhalten:", response)  # Debug-Ausgabe
@@ -239,7 +241,7 @@ def chat():
                 "details": "Bitte überprüfen Sie die Server-Logs für mehr Details."
             }), 500
     else:
-        return jsonify({"response": "This service is currently not available - no api-key provided."})
+        return jsonify({"response": "This service is currently not available - no api-key provided."}), 401
 
 @app.route("/chat_history", methods=["GET"])
 def get_chat_history():
