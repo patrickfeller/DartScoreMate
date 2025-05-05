@@ -1,0 +1,15 @@
+# IDEs
+.vscode/
+.idea/
+uv.lock
+.ENV
+
+# Python
+__pycache__/
+
+# env
+*.venv
+.gitignore
+
+#Flask Session
+flask_session/
