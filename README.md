@@ -180,14 +180,41 @@ We use a structured Git workflow to keep our codebase stable and organized.
 <details>
   <summary>🤖 How to start?</summary>
   
-1. git clone https://gitlab.web.fh-kufstein.ac.at/hillebranddaniel/dartscoremate_softwareentwicklung2.git
-2. Navigate to the project: (cd dartscoremate_softwareentwicklung2)
-3. -m venv venv (source venv/bin/activate)
-4. pip install -r requirements.txt
-5. Add .env file with Api key (GROQ_API_KEY=your_key)
-6. -m src.flask_app.main
-7. Open in browser your http://localhost:5000
-
+1. **Clone the Project:** 
+    ```
+    git clone https://gitlab.web.fh-kufstein.ac.at/hillebranddaniel/dartscoremate_softwareentwicklung2.git
+    ```
+2. **Navigate to the project:** 
+    ```
+    cd dartscoremate_softwareentwicklung2
+    ```
+3. **Add Secrets to your Repo:** 
+   1. navigate to `src/flask_app`
+   2. create a new file `.env`
+   3. Fill out the following lines and paste them into the `.env`-file:
+    ```
+    DB_HOST=XXXXX
+    DB_PORT=XXXXX
+    DB_USER=XXXXX
+    DB_PASSWORD=XXXXX
+    DB_NAME=XXXXX
+    GROQ_API_KEY=XXXXX
+    ``` 
+4. **To start the app locally:**
+   1. initialize a new virtual environment 
+    ```
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+    2. install all required packages with `uv`
+    ```
+    pip install uv
+    uv pip install .
+    ```
+    3. run the main darts app via `python3 -m src.flask_app.main`
+    4. run the streamlit app via `streamlit run src/pic_snap/app.py`
+ 5. **How to start the app from Docker:** 
+    1. run `docker-compose up --build`
 </details>
 <details>
 <summary>🐋 Docker Setup</summary>
