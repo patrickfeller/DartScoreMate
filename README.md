@@ -12,14 +12,12 @@
   - [Current estimated points are marked in 🔵 blue.](#current-estimated-points-are-marked-in--blue)
   - [Links](#links)
 - [Project status](#project-status)
-  - [🌳 Branches and Commits](#-branches-and-commits)
-  - [🌿 Branches](#-branches)
+- [🌳 Branches and Commits](#-branches-and-commits)
     - [`develop` Branch](#develop-branch)
     - [`main` Branch](#main-branch)
     - [`feature` Branches](#feature-branches)
     - [Branch Naming Conventions](#branch-naming-conventions)
     - [Typical Workflow](#typical-workflow)
-  - [✍️ Commit Message Convention](#️-commit-message-convention)
     - [Commit Types:](#commit-types)
 - [🧪 Installation \& Setup](#-installation--setup)
   - [⚠️ Which App Features require Live Camera Feed?](#️-which-app-features-require-live-camera-feed)
@@ -41,23 +39,29 @@ It uses camera-based score detection and provides AI-powered recommendations for
   <summary>✨ Click to expand</summary>
   
   ## Features
-  - Create Users ✅  
-  - Track Score ✅  
-  - Save Games (SQL) ✅  
-  - Chatbot Integration ✅  
-  - Live-View of Dart Board (static) ✅  
+  - Create Users 
+  - Track Score 
+  - Save/Load Games (SQL) 
+  - Chatbot Integration 
+  - Live-View of Dart Board (static)  
 
   ### Advanced Features  
-  - Detect Score from Image ⏳  
-  - Personalized Shot Recommendations ✅ 
+  - Detect Score from Image 
+  - Personalized Shot Recommendations 
 
 </details>
 
 ## Current Status
-✅ flask environment  
-✅ docker file  
-✅ captured images of dartboard with arrows  
-✅ streamlit camera caption app
+- ✅ **Flask + HTML/CSS/JS Frontend:** Landing page, main game screen, board status view, undo button, save-game button, winning animations, and more  
+- ✅ **Streamlit Camera App:** Live camera capture and captioning tool  
+- ✅ **Automated Tests:** Unit & integration tests in GitLab CI  
+- ✅ **Docker Support:** One‑command launch via Docker Compose, includes camera passthrough  
+- ✅ **Chatbot Integration:** Groq‑powered recommendation bot  
+- ✅ **Scoring Recommendations:** AI‑driven score suggestions  
+- ✅ **OOP & Design Patterns:** Modular, maintainable code architecture  
+- ⏳ **Save/Load Games:** Game saving complete; load functionality in progress  
+- ⏳ Presentation for May
+- ⏳ **Image‑Based Score Prediction:** ML model for predicting scores from photos  
 
 ## Grading 
 <details>
@@ -89,11 +93,11 @@ It uses camera-based score detection and provides AI-powered recommendations for
 # Project status 
 First stable version of app is rolled out. Now working on the presentation for Mid-May.
 
-## 🌳 Branches and Commits
+# 🌳 Branches and Commits
 <details>
-  <summary>Click to expand</summary>
+  <summary>🌿 Branches</summary>
 
-  ## 🌿 Branches
+
 
 We use a structured Git workflow to keep our codebase stable and organized.
 
@@ -143,9 +147,9 @@ We use a structured Git workflow to keep our codebase stable and organized.
       +------------+       +------------+        +------------+
 ```
 ---
-
-## ✍️ Commit Message Convention
-
+</details>
+<details>
+<summary>✍️ Commit Message Convention</summary>
 We follow a **conventional commit** style to make our commit history clear and organized. Commit messages should use one of the following prefixes:
 
 ### Commit Types:
@@ -169,8 +173,6 @@ We follow a **conventional commit** style to make our commit history clear and o
 
 - **STYLE**: Non-functional changes like formatting or styling (e.g., fixing typos, adjusting layout).  
   Example: `STYLE: Fix indentation in authentication module`
-
-
 </details>
 
 # 🧪 Installation & Setup
@@ -282,27 +284,27 @@ macOS does not allow Docker containers direct access to USB cameras due to virtu
 
 
 ## 👥 Contributors
-- Patrick Feller – Flask setup  
-- Chris Lehmann – Unit tests  
-- Kathrin Lindauer – SQL  
-- Ana Orkić – CSS  
-- Daniel Hillebrand – PM, Docker, GitLab  
-- Lyudmila Shamina - 
+- Patrick Feller – Flask Setup, OOP, Design Patterns, Streamlit App, 3D-Prints  
+- Chris Lehmann – Score Prediction (ML), Unit Tests, GitLab
+- Kathrin Lindauer – SQL, README, Chat History for Chatbot
+- Ana Orkić – CSS, Winning Animation, Chatbot, Meeting Records, Presentation  
+- Daniel Hillebrand – PM, Docker, GitLab, Tests, Support 
+- Lyudmila Shamina - README (April 2024)
 
 
 ## 🚦 Status & Roadmap
-- ✅ Flask environment  
-- ✅ Docker ready  
-- ✅ Static board + image capture  
-- ✅ Streamlit camera test  
-- ⏳ Score detection in progress  
-- ⏳ Save games to SQL in progress  
-- 📌 First deploy planned April  
-- 🗓 Final presentation: May 16
+- 🎉 **Project Kickoff:** Early March  
+- 📌 **First Deployment**: April 1 (v1)  
+- 🗓 **Final Presentation**: May 16 (95% complete)  
+- 🚀 **App Launch**: End of May
 
 
 ## 🗓 Meeting History
 - 2025-03-10 – Kickoff  
 - 2025-03-17 – Planning  
-- 2025-03-24 – Review  
-- 2025-04-14 – Next meeting
+- 2025-03-24 – Development
+- 2025-03-31 - Development
+- 2025-04-14 - V1-Launch, Review
+- 2025-04-28 - KVPs
+
+next (and final) meeting 📅: **2025-05-12 6pm**
