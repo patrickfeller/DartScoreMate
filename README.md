@@ -163,22 +163,19 @@ We use a structured Git workflow to keep our codebase stable and organized.
 
 # 🧪 Installation & Setup
 
-<details>
-  <summary>👾 What you need?</summary>
+<details>'
+  <summary>👾 What You'll need</summary>
 
-  - Python  
-  - Flask  
-  - Virtual ebviroment (venv)
-  - OpenCV (cv2)  
-  - Streamlit (camera testing)  
-  - SQL (for saving games)  
-  - Docker  
-  - Groq API (for recommendations)
-  - .env file with Api key
+  - 🐍 **Python 3.8 or higher**  
+  - 📷 **OpenCV-compatible OS** (for camera support)  
+  - 💾 **SQL Database** access (used to store game data)  
+  - 🐋 **Docker** (for running the app in a container)  
+  - 🧠 **Groq API Key** (for the built-in chatbot — create one for free [here](https://console.groq.com/keys))
 </details>
 
+
 <details>
-  <summary>🤖 How to start?</summary>
+  <summary>🤖 How to get started</summary>
   
 1. **Clone the Project:** 
     ```
@@ -213,7 +210,7 @@ We use a structured Git workflow to keep our codebase stable and organized.
     ```
     3. run the main darts app via `python3 -m src.flask_app.main`
     4. run the streamlit app via `streamlit run src/pic_snap/app.py`
- 5. **How to start the app from Docker:** 
+ 5. **To start the app from Docker:** 
     1. run `docker-compose up --build`
 </details>
 <details>
