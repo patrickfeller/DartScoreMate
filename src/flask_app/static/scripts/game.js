@@ -218,6 +218,21 @@ function selectField(type, button) {
         .catch(error => console.error('Error:', error));
         return;
     }
+    if (type === "Predict") {
+        fetch('/get_score_prediction')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Score Prediction:", data);
+            if (data && data.score !== undefined && data.multiplier !== undefined) {
+                multiplier = data.multiplier;  // Set multiplier as per backend response
+                handleScore(data.score);  // Call handleScore with the predicted score
+            } else {
+                alert('Prediction failed or returned invalid score.');
+            }
+        })
+        .catch(error => console.error('Error fetching prediction:', error));
+        return;
+    }
 }
 
 function handleScore(score) {

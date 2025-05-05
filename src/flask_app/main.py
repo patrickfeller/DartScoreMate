@@ -11,7 +11,7 @@ from . import aid_functions_sql
 from mysql.connector.errors import Error
 from . import recommender
 from flask_session import Session
-
+import random
 
 
 
@@ -311,6 +311,25 @@ def return_to_game():
 def reset_chat():
     session.pop("chat_history", None)
     return jsonify({"status": "ok"})
+
+@app.route("/get_score_prediction", methods = ["GET"])
+def get_score_prediction():
+    def random_dart_score():
+        # Choose a base score from 0, 1–20, or 25
+        score = random.choice([0] + list(range(1, 21)) + [25])
+        
+        # Determine allowed multiplier based on score
+        if score == 0:
+            multiplier = 1
+        elif score == 25:
+            multiplier = random.choice([1, 2])
+        else:
+            multiplier = random.choice([1, 2, 3])
+        
+        # Return JSON-serializable result
+        return score, multiplier
+    score_prediction = random_dart_score()
+    return jsonify({"score": score_prediction[0], "multiplier": score_prediction[1]})
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
