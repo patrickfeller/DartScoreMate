@@ -25,17 +25,6 @@
     <button onclick="toggleView()">Switch to Picture</button>
     <button onclick="selectField('Undo')">Undo⏪</button>
     <button onclick="selectField('SaveGame')">Save💾</button>
-    <button onclick="selectField('LoadGame')">Load Game📂</button>
-
-    <!-- Eingabefeld für Game-ID jetzt immer sichtbar -->
-    <div class="chat-input">
-        <form id="gameForm" action="{{ url_for('load_game') }}" method="POST">
-            <input type="number" id="userInput" name="game_id" placeholder="Game-ID eingeben..." required>
-            <button id="sendMessage" type="submit">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </form>
-    </div>
 
     <div id="button-view">
         <div>
@@ -74,15 +63,4 @@
         <img src="{{ url_for('static', filename='images/dartboard.png') }}" alt="Dartboard">
     </div>
 </div>
-
-<script>
-    // Wenn ENTER gedrückt wird, das Formular abschicken
-    document.getElementById("userInput").addEventListener("keydown", function(event) {
-        if (event.key === "Enter") {
-            event.preventDefault();  // Verhindert das Standardverhalten (z. B. Seite neuladen)
-            document.getElementById("gameForm").submit();  // Formular abschicken
-        }
-    });
-</script>
-
 {% endblock %}

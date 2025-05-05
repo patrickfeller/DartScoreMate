@@ -191,9 +191,11 @@ def load_game():
         return jsonify({"namePlayerA": "Gustaf",
                         "namePlayerB": "Bernd",
                         "scorePlayerA": 300,
-                        "scorePlayerB": 200})
+                        "scorePlayerB": 200,
+                        "gamemode":"301", 
+                        "redirect_url": f'/game/Gustaf/Bernd/301/1'})
         # return redirect(f'/game/{game_data["player_A"]}/{game_data["player_B"]}/{game_data["game_mode"]}/1') 
-    #statt redirect 4 elemente aus db ls json zurückgeben!!! weiterverarbeitet im js
+        #statt redirect 4 elemente aus db ls json zurückgeben!!! weiterverarbeitet im js
 
     except Error as e:
         print(f"Fehler beim Laden des Spiels: {str(e)}")

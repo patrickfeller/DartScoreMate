@@ -164,6 +164,46 @@ function showWinnerAnimation(winnerIndex) {
     }, 10000);
 }
 
+async function handleGameIdEnter(event) {
+    if (event.key === "Enter") {
+        const gameId = document.getElementById("gameIdInput").value.trim();
+        if (!gameId) return;
+
+        const formData = new FormData();
+        formData.append("game_id", gameId);
+
+        try {
+            const response = await fetch("/load_game", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.redirect_url) {
+                alert(data.error || "Kein Spiel gefunden.");
+                return;
+            }
+
+            // 🔐 Store data temporarily
+            sessionStorage.setItem("loadedGameData", JSON.stringify({
+                namePlayerA: data.namePlayerA,
+                namePlayerB: data.namePlayerB,
+                scorePlayerA: data.scorePlayerA,
+                scorePlayerB: data.scorePlayerB
+            }));
+
+            // ➡️ Redirect
+            window.location.href = data.redirect_url;
+
+        } catch (err) {
+            alert("Fehler beim Laden des Spiels.");
+        }
+    }
+}
+
+
+
 function selectField(type, button) {
     if (type === 'Undo') {
         fetch('/undo_throw', {
@@ -263,5 +303,22 @@ function handleScore(score) {
 
 // Initialize the game
 document.addEventListener('DOMContentLoaded', function() {
+    const loadedData = sessionStorage.getItem("loadedGameData");
+    if (loadedData) {
+        const data = JSON.parse(loadedData);
+
+        const playerAName = document.getElementById("playerA_name");
+        const playerBName = document.getElementById("playerB_name");
+        const playerAScore = document.getElementById("playerA_score");
+        const playerBScore = document.getElementById("playerB_score");
+
+        if (playerAName) playerAName.textContent = data.namePlayerA;
+        if (playerBName) playerBName.textContent = data.namePlayerB;
+        if (playerAScore) playerAScore.textContent = data.scorePlayerA;
+        if (playerBScore) playerBScore.textContent = data.scorePlayerB;
+
+        // ✅ Clear it so it doesn't persist across reloads
+        sessionStorage.removeItem("loadedGameData");
     updatePlayerTurn();
+    }
 });
