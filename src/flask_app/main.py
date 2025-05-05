@@ -21,7 +21,7 @@ client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 adminRef = gamedata.Admin()
 gameRef = gamedata.Game()
 
-# Initialize Flask app
+# Flask setup
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 app.config.update(
@@ -30,9 +30,7 @@ app.config.update(
 )
 Session(app)
 
-######################################
-# ROUTES
-######################################
+# ------------------------- ROUTES -------------------------
 
 @app.route("/")
 @app.route("/play")
@@ -68,13 +66,13 @@ def generate_frames(camera_id):
 
 @app.route("/new_game", methods=["POST"])
 def new_game():
-    gameRef.start_game(
-        int(request.form['legs']),
-        int(request.form['game-type']),
-        request.form['player1name'],
-        request.form['player2name']
-    )
-    return redirect(f'/game/{gameRef.players[0].name}/{gameRef.players[1].name}/{gameRef.format}/{gameRef.first_to}')
+    format = int(request.form['game-type'])
+    first_to = int(request.form['legs'])
+    playerA = request.form['player1name']
+    playerB = request.form['player2name']
+    gameRef.start_game(first_to, format, playerA, playerB)
+    session.pop("loaded_game_id", None)  # Entferne alte Spiel-ID, falls vorhanden
+    return redirect(f'/game/{playerA}/{playerB}/{format}/{first_to}')
 
 @app.route('/game/<playerA>/<playerB>/<format>/<first_to>')
 def game(playerA, playerB, format, first_to):
@@ -125,23 +123,111 @@ def undo_throw():
         })
     return jsonify({'success': False, 'error': 'No throws to undo'}), 400
 
-@app.route("/next")
-def next_player():
-    return jsonify({"success": True})
+@app.route("/save_game", methods=["POST"])
+def save_game():
+    scoreA, scoreB = gameRef.get_totals()
+    playerA, playerB = [p.name for p in gameRef.players]
+    game_mode = gameRef.format
+
+    conn = aid_functions_sql.get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        loaded_game_id = session.get("loaded_game_id")
+
+        if loaded_game_id:
+            # Update vorhandenes Spiel
+            cursor.execute("""
+                UPDATE game
+                SET game_mode = %s,
+                    player_A = %s,
+                    player_B = %s,
+                    score_player_A = %s,
+                    score_player_B = %s
+                WHERE game_id = %s
+            """, (game_mode, playerA, playerB, scoreA, scoreB, loaded_game_id))
+            print(f"Aktualisiertes Spiel-ID: {loaded_game_id}")
+        else:
+            # Neues Spiel speichern
+            cursor.execute("""
+                INSERT INTO game (game_mode, player_A, player_B, score_player_A, score_player_B)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (game_mode, playerA, playerB, scoreA, scoreB))
+            print("Neues Spiel gespeichert")
+
+        conn.commit()
+        return jsonify({"success": True})
+
+    except Error as e:
+        print(f"Fehler beim Speichern: {str(e)}")
+        return jsonify({"success": False})
+
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/load_game", methods=["POST"])
+def load_game():
+    game_id = request.form.get("game_id")
+    if not game_id:
+        return redirect("/play")
+
+    conn = aid_functions_sql.get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT * FROM game WHERE game_id = %s", (game_id,))
+        game_data = cursor.fetchone()
+
+        if not game_data:
+            print(f"Kein Spiel mit ID {game_id} gefunden.")
+            return redirect("/play")
+
+        session["loaded_game_id"] = game_id  # Spiel-ID merken
+        gameRef.start_game(1, game_data["game_mode"], game_data["player_A"], game_data["player_B"])
+        gameRef.players[0].total_score = game_data["score_player_A"]
+        gameRef.players[1].total_score = game_data["score_player_B"]
+
+        return redirect(f'/game/{game_data["player_A"]}/{game_data["player_B"]}/{game_data["game_mode"]}/1') 
+    #statt redirect 4 elemente aus db ls json zurückgeben!!! weiterverarbeitet im js
+
+    except Error as e:
+        print(f"Fehler beim Laden des Spiels: {str(e)}")
+        return redirect("/play")
+
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/current-game")
+def return_to_game():
+    if gameRef.playing:
+        scores = gameRef.get_totals()
+        if scores != -1:
+            return redirect(f'/game/{gameRef.players[0].name}/{gameRef.players[1].name}/{gameRef.format}/{gameRef.first_to}')
+    return redirect('/play')
+
+@app.route("/get_score_recommendation", methods=["POST"])
+def get_score_recommendation():
+    data = request.get_json()
+    current_score = data.get('score')
+
+    if current_score is None:
+        return jsonify({'scoreRecommendation': 0}), 400
+
+    return jsonify({'scoreRecommendation': recommender.get_recommendation(current_score)})
 
 @app.route("/chat", methods=["POST"])
 def chat():
     if not client:
-        return jsonify({"response": "This service is currently not available - no API key provided."})
+        return jsonify({"response": "Chat-Service aktuell nicht verfügbar (kein API-Key)."})
 
     user_message = request.json.get("message", "")
     if not user_message:
         return jsonify({"error": "Keine Nachricht empfangen"}), 400
 
     prompt = (
-        "Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte alle Fragen rund "
-        "um das Dartspielen, einschließlich Regeln, Techniken, Ausrüstung und Geschichte. "
-        "Sei freundlich und hilfreich."
+        "Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte Fragen zu Regeln, Technik, Ausrüstung usw."
     )
 
     messages = [{"role": "system", "content": prompt}]
@@ -170,7 +256,7 @@ def chat():
         return jsonify({
             "error": str(e),
             "error_type": type(e).__name__,
-            "details": "Bitte überprüfen Sie die Server-Logs für mehr Details."
+            "details": "Bitte Server-Logs prüfen."
         }), 500
 
 @app.route("/chat_history", methods=["GET"])
@@ -182,74 +268,7 @@ def reset_chat():
     session.pop("chat_history", None)
     return jsonify({"status": "ok"})
 
-@app.route("/save_game", methods=["POST"])
-def save_game():
-    scoreA, scoreB = gameRef.get_totals()
-    playerA, playerB = [p.name for p in gameRef.players]
-    game_mode = gameRef.format
-
-    conn = aid_functions_sql.get_db_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute(
-            "INSERT INTO game (game_mode, player_A, player_B, score_player_A, score_player_B) VALUES (%s, %s, %s, %s, %s)",
-            (game_mode, playerA, playerB, scoreA, scoreB)
-        )
-        conn.commit()
-        return jsonify({"success": True})
-    except Error as e:
-        print(f"An error occurred: {e}")
-        return jsonify({"success": False})
-    finally:
-        cursor.close()
-        conn.close()
-
-@app.route('/get_score_recommendation', methods=["POST"])
-def get_score_recommendation():
-    data = request.get_json()
-    current_score = data.get('score')
-
-    if current_score is None:
-        return jsonify({'scoreRecommendation': 0}), 400
-
-    return jsonify({'scoreRecommendation': recommender.get_recommendation(current_score)})
-
-@app.route("/current-game")
-def return_to_game():
-    if gameRef.playing:
-        scores = gameRef.get_totals()
-        if scores != -1:
-            return redirect(f'/game/{gameRef.players[0].name}/{gameRef.players[1].name}/{gameRef.format}/{gameRef.first_to}')
-    return redirect('/play')
-
-@app.route("/load_game", methods=["POST"])
-def load_game():
-    game_id = request.form.get("game_id")
-    if not game_id:
-        return redirect("/play")
-
-    conn = aid_functions_sql.get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    try:
-        cursor.execute("SELECT * FROM game WHERE game_id = %s", (game_id,))
-        game_data = cursor.fetchone()
-        if not game_data:
-            print(f"Kein Spiel mit ID {game_id} gefunden.")
-            return redirect("/play")
-
-        gameRef.start_game(1, game_data["game_mode"], game_data["player_A"], game_data["player_B"])
-        gameRef.players[0].total_score = game_data["score_player_A"]
-        gameRef.players[1].total_score = game_data["score_player_B"]
-        return redirect(f'/game/{game_data["player_A"]}/{game_data["player_B"]}/{game_data["game_mode"]}/1')
-
-    except Error as e:
-        print(f"Fehler beim Laden des Spiels: {str(e)}")
-        return redirect("/play")
-    finally:
-        cursor.close()
-        conn.close()
+# ------------------------- APP START -------------------------
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
