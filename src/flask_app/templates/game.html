@@ -26,7 +26,17 @@
     <button onclick="selectField('Undo')">Undo⏪</button>
     <button onclick="selectField('SaveGame')">Save💾</button>
     <button onclick="selectField('LoadGame')">Load Game📂</button>
-    <!-- insert if needed: button onclick="selectField('Next')" id="nextButton" >Next⏩</button -->
+
+    <!-- Eingabefeld für Game-ID jetzt immer sichtbar -->
+    <div class="chat-input">
+        <form id="gameForm" action="{{ url_for('load_game') }}" method="POST">
+            <input type="number" id="userInput" name="game_id" placeholder="Game-ID eingeben..." required>
+            <button id="sendMessage" type="submit">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+
     <div id="button-view">
         <div>
             <button id="double" onclick="selectField('Double', this)">Double</button>
@@ -59,25 +69,20 @@
             </div>
         </div>
     </div>
+
     <div id="picture-view" style="display: none;">
         <img src="{{ url_for('static', filename='images/dartboard.png') }}" alt="Dartboard">
     </div>
-    <div class="chat-input">
-        <form id="gameForm" action="{{ url_for('load_game') }}" method="POST">
-            <input type="text" id="userInput" name="game_name" placeholder="Ihre Nachricht..." required>
-            <button id="sendMessage" type="submit">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </form>
-    </div>
-    <script>
-        // Wenn ENTER gedrückt wird, das Formular abschicken
-        document.getElementById("userInput").addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();  // Verhindert das Standardverhalten (z.B. Seite neuladen)
-                document.getElementById("gameForm").submit();  // Formular abschicken
-            }
-        });
-    </script>
 </div>
+
+<script>
+    // Wenn ENTER gedrückt wird, das Formular abschicken
+    document.getElementById("userInput").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();  // Verhindert das Standardverhalten (z. B. Seite neuladen)
+            document.getElementById("gameForm").submit();  // Formular abschicken
+        }
+    });
+</script>
+
 {% endblock %}
