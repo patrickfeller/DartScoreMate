@@ -12,14 +12,15 @@
   - [Current estimated points are marked in 🔵 blue.](#current-estimated-points-are-marked-in--blue)
   - [Links](#links)
 - [Project status](#project-status)
-  - [Technologies and Branches](#technologies-and-branches)
-  - [🧰 Tech Stack](#-tech-stack)
+  - [🌳 Branches and Commits](#-branches-and-commits)
   - [🌿 Branches](#-branches)
     - [`develop` Branch](#develop-branch)
     - [`main` Branch](#main-branch)
     - [`feature` Branches](#feature-branches)
     - [Branch Naming Conventions](#branch-naming-conventions)
     - [Typical Workflow](#typical-workflow)
+  - [✍️ Commit Message Convention](#️-commit-message-convention)
+    - [Commit Types:](#commit-types)
 - [🧪 Installation \& Setup](#-installation--setup)
   - [⚠️ Which App Features require Live Camera Feed?](#️-which-app-features-require-live-camera-feed)
   - [✅ How to Check if Your Setup Supports the Camera:](#-how-to-check-if-your-setup-supports-the-camera)
@@ -90,23 +91,9 @@ It uses camera-based score detection and provides AI-powered recommendations for
 # Project status 
 First stable version of app is rolled out. Now working on the presentation for Mid-May.
 
-## Technologies and Branches
+## 🌳 Branches and Commits
 <details>
   <summary>Click to expand</summary>
-  
-  ## 🧰 Tech Stack
-  - Python  
-  - Flask  
-  - Virtual enviroment (venv)
-  - OpenCV (cv2)  
-  - Streamlit (camera testing)  
-  - SQL (for saving games)  
-  - Docker  
-  - Groq API (for recommendations)
-  - .env file with Api key
-
-
-  ---
 
   ## 🌿 Branches
 
@@ -157,13 +144,40 @@ We use a structured Git workflow to keep our codebase stable and organized.
       | new-api    |       | ui-desing  |        | typo-fix   |
       +------------+       +------------+        +------------+
 ```
+---
+
+## ✍️ Commit Message Convention
+
+We follow a **conventional commit** style to make our commit history clear and organized. Commit messages should use one of the following prefixes:
+
+### Commit Types:
+- **FEAT**: A new feature or functionality.  
+  Example: `FEAT: Add new user authentication flow`
+  
+- **DOCS**: Changes to documentation.  
+  Example: `DOCS: Update README with setup instructions`
+  
+- **CHORE**: Routine tasks, maintenance, or refactoring without changing functionality.  
+  Example: `CHORE: Update dependencies`
+
+- **TESTS**: Adding or modifying tests.  
+  Example: `TESTS: Write unit tests for user service`
+
+- **FIX**: Bug fixes or correcting code that was not working as expected.  
+  Example: `FIX: Resolve issue with user login error handling`
+
+- **REFACTOR**: Code improvements without changing functionality (e.g., cleaning up or optimizing code).  
+  Example: `REFACTOR: Simplify user profile rendering logic`
+
+- **STYLE**: Non-functional changes like formatting or styling (e.g., fixing typos, adjusting layout).  
+  Example: `STYLE: Fix indentation in authentication module`
 
 
 </details>
 
 # 🧪 Installation & Setup
 
-<details>'
+<details>
   <summary>👾 What You'll need</summary>
 
   - 🐍 **Python 3.8 or higher**  
