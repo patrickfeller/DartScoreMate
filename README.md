@@ -65,10 +65,10 @@ It uses camera-based score detection and provides AI-powered recommendations for
   <summary>Click to expand</summary>
 
   ## Current estimated points are marked in 🔵 blue.
-  - OOP & Framework (50) 🔵30
-  - Unittests (5) 🔵2
-  - Requirements / Docker (10) 🔵5
-  - Documentation (10) 🔵3
+  - OOP & Framework (50) 🔵37
+  - Unittests (5) 🔵5
+  - Requirements / Docker (10) 7
+  - Documentation (10) 🔵5
   - Gitlab (10) 🔵10
   - Presentation (15) 🔵2
 
