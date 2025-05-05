@@ -181,14 +181,18 @@ def load_game():
 
         if not game_data:
             print(f"Kein Spiel mit ID {game_id} gefunden.")
-            return redirect("/play")
-
+            return jsonify({"error": f"Kein Spiel mit ID {game_id} gefunden."}), 404 # status 404 = nicht gefunden
         session["loaded_game_id"] = game_id  # Spiel-ID merken
         gameRef.start_game(1, game_data["game_mode"], game_data["player_A"], game_data["player_B"])
         gameRef.players[0].total_score = game_data["score_player_A"]
         gameRef.players[1].total_score = game_data["score_player_B"]
-
-        return redirect(f'/game/{game_data["player_A"]}/{game_data["player_B"]}/{game_data["game_mode"]}/1') 
+        
+        ### ---> add the correct data from MARIADB HERE
+        return jsonify({"namePlayerA": "Gustaf",
+                        "namePlayerB": "Bernd",
+                        "scorePlayerA": 300,
+                        "scorePlayerB": 200})
+        # return redirect(f'/game/{game_data["player_A"]}/{game_data["player_B"]}/{game_data["game_mode"]}/1') 
     #statt redirect 4 elemente aus db ls json zurückgeben!!! weiterverarbeitet im js
 
     except Error as e:
