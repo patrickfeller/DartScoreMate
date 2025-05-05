@@ -12,7 +12,7 @@ from mysql.connector.errors import Error
 from . import recommender
 from flask_session import Session
 import random
-
+import platform
 
 
 # load environment variables
@@ -54,7 +54,11 @@ def boardstatus():
 
 # Convert still camera frames to video
 def generate_frames(camera_id):
-    camera = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
+    system = platform.system()
+    if system == "Linux":
+        camera = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
+    else:
+        camera = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
     try:
         while True:
             success, frame = camera.read()
