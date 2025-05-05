@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h1>The Dart-App!</h1>
+    <p>First Layout</p>
+</div>
+<div class="userinput">
+    <h1>The Dart-App!</h1>
+    <p>First Layout</p>
+</div>
+
+<!-- Chat Button -->
+<button class="chat-button" id="chatButton">
+    <i class="fa-solid fa-smile"></i> Lächeln!
+</button>
+
+<!-- Chat Window -->
+<div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+        <i class="fas fa-robot"></i>
+        <h3>Mrs. Darts</h3>
+        <button class="close-button" id="closeChat">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="message bot-message">
+            Hallo! Ich bin Mrs. Darts, Ihre persönliche Dart-Expertin. Wie kann ich Ihnen heute helfen? 🎯
+        </div>
+    </div>
+    <div class="chat-input">
+        <input type="text" id="userInput" placeholder="Ihre Nachricht...">
+        <button id="sendMessage">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
