@@ -21,9 +21,14 @@
     - [Branch Naming Conventions](#branch-naming-conventions)
     - [Typical Workflow](#typical-workflow)
 - [🧪 Installation \& Setup](#-installation--setup)
+  - [⚠️ Which App Features require Live Camera Feed?](#️-which-app-features-require-live-camera-feed)
+  - [✅ How to Check if Your Setup Supports the Camera:](#-how-to-check-if-your-setup-supports-the-camera)
+    - [🪟 Windows (Docker Desktop + WSL)](#-windows-docker-desktop--wsl)
+    - [🐧 Linux](#-linux)
+    - [🍎 macOS](#-macos)
   - [👥 Contributors](#-contributors)
   - [🚦 Status \& Roadmap](#-status--roadmap)
-  - [🗓 Meeting History](#-meeting-history) 
+  - [🗓 Meeting History](#-meeting-history)
 
 ## 🔍 About the Project
 DartScoreMate is a web-based application for tracking and enhancing dart games in real-time.  
@@ -182,6 +187,60 @@ We use a structured Git workflow to keep our codebase stable and organized.
 5. Add .env file with Api key (GROQ_API_KEY=your_key)
 6. -m src.flask_app.main
 7. Open in browser your http://localhost:5000
+
+</details>
+<details>
+<summary>🐋 Docker Setup</summary>
+
+You can run this project in Docker across Windows, Linux, or macOS, and most of the app's functionalities will work just fine. However, some features (such as those requiring a **live camera feed**) may face **limitations** depending on your OS and hardware access—especially on Windows due to **WSL** constraints.
+
+## ⚠️ Which App Features require Live Camera Feed?
+
+1. **Board Status**: Shows live image of dartboard
+2. **Score Prediction**: Get score prediction of current throw based on live dartboard images.
+3. **Pic Snap**: A small streamlit app to take pictures of your dartboard and save them to a directory. Mainly useful for training a score-prediction algorithm. 
+
+## ✅ How to Check if Your Setup Supports the Camera:
+
+### 🪟 Windows (Docker Desktop + WSL)
+
+1. Mount your USB camera to WSL using [`usbipd`](https://learn.microsoft.com/de-de/windows/wsl/connect-usb): 
+    ```
+    usbipd list # list all usb devices
+    usbipd bind --busid X-X # make device X-X accessible to WSL
+    usbipd attach --wsl --busid X-X
+    ```
+2. Check if the USB device is detected in WSL: 
+    ```
+    lsusb
+    ```
+    return should be similar to 
+    ```
+    Bus 001 Device 002: ID 0bda:5844 Realtek Semiconductor Corp. USB Camera
+    ```
+3. Check if the USB device is detected as as a webcam 
+    ```
+    ls -l /dev/video*
+    ```
+    Should return 
+    ```
+    crw-rw---- 1 root video 81, 0 Mar 31 13:00 /dev/video0
+    crw-rw---- 1 root video 81, 1 Mar 31 13:00 /dev/video1
+    ```
+4. Test your camera using `ffmpeg`, `cheese` or `guvcview`. If you see an image, then your Setup Supports USB Camera Image Feed.
+5. If 1-3 succeeded but 4 failed, this is most likely because of missing camera drivers in WSL. You can tackle this issue by building a new WSL-kernel from scratch that includes the necessary camera drivers. This process is not so straightforward, so I recommend to follow [this video guide](https://www.youtube.com/watch?v=t_YnACEPmrM&ab_channel=AgileDevArt) by *AgileDevArt*. After successfully build a new WSL-Kernel with the right drivers, reopen any foto-app like `ffmpeg`, `cheese` or `guvcview` and see if you can now see an image. 
+6. If you still don't see an image, it is very likely that it is still a driver issue. Troubleshooting here can be very difficult. An alternative way to tackle this problem is by installing a proper Linux distribution like *Ubunutu* with dual-boot and running Docker from there. See [this guide](https://gcore.com/learning/dual-boot-ubuntu-windows-setup) for further reference.
+
+### 🐧 Linux
+Running the project on native Linux provides the **most reliable camera support.** Docker will have full access to the host's USB devices, assuming you grant permission.
+
+If you plan to use live camera features, this is the **recommended setup.**
+
+### 🍎 macOS
+
+macOS does not allow Docker containers direct access to USB cameras due to virtualization and security constraints.
+
+**Live camera features will not work** on macOS unless you implement a workaround (e.g., camera-to-HTTP feed), which is outside the scope of this project.
 
 </details>
 
