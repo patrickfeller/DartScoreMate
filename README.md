@@ -68,12 +68,12 @@ It uses camera-based score detection and provides AI-powered recommendations for
   <summary>Click to expand</summary>
 
   ## Current estimated points are marked in 🔵 blue.
-  - OOP & Framework (50) 🔵37
+  - OOP & Framework (50) 🔵45
   - Unittests (5) 🔵5
-  - Requirements / Docker (10) 7
-  - Documentation (10) 🔵5
+  - Requirements / Docker (10) 9
+  - Documentation (10) 🔵7
   - Gitlab (10) 🔵10
-  - Presentation (15) 🔵2
+  - Presentation (15) 🔵12
 
   ❌ no hand-in with just one file  
   ❌ meaningless commit-messages: use standard words (FIX, FEAT, DOCS,...) and effective description  
