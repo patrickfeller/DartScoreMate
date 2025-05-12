@@ -340,15 +340,22 @@ def get_score_prediction():
     def image_processed_dart_score():
         from src.flask_app.detection import calculating_dart_deviation_of_camera_perspectives, calculating_dart_scoring_points
 
-        basis_dartboard_frames = gameRef.get_basis_dart_score_raw_image_frames()
+        if gameRef.current_leg.current_turn.dart_score_image_frames["camera_A"]["new_actual_frame"] == None:
+            basis_dartboard_frame_cameraf_a = gameRef.get_basis_dart_score_raw_image_frames()["camera_A"]
+            basis_dartboard_frame_cameraf_b = gameRef.get_basis_dart_score_raw_image_frames()["camera_B"]
+            basis_dartboard_frame_cameraf_c = gameRef.get_basis_dart_score_raw_image_frames()["camera_C"]
+        else:
+            basis_dartboard_frame_cameraf_a = gameRef.current_leg.current_turn.dart_score_image_frames["camera_A"]["new_actual_frame"]
+            basis_dartboard_frame_cameraf_b = gameRef.current_leg.current_turn.dart_score_image_frames["camera_B"]["new_actual_frame"]
+            basis_dartboard_frame_cameraf_c = gameRef.current_leg.current_turn.dart_score_image_frames["camera_C"]["new_actual_frame"]
 
         success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(Camera_ID.A)
         success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(Camera_ID.B)
         success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(Camera_ID.C)
 
-        gradient_camera_a = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frames["camera_A"], dartboard_frame_camera_A, "A")
-        gradient_camera_b = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frames["camera_B"], dartboard_frame_camera_B, "B")
-        gradient_camera_c = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frames["camera_C"], dartboard_frame_camera_C, "C")
+        gradient_camera_a = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frame_cameraf_a, dartboard_frame_camera_A, "A")
+        gradient_camera_b = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frame_cameraf_b, dartboard_frame_camera_B, "B")
+        gradient_camera_c = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frame_cameraf_c, dartboard_frame_camera_C, "C")
 
         gameRef.current_leg.current_turn.set_dart_score_image_frame_buffer(dartboard_frame_camera_A, dartboard_frame_camera_B, dartboard_frame_camera_C)
 
