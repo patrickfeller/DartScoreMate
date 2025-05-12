@@ -115,6 +115,12 @@ class Turn:
     def __init__(self, player):
         self.darts = []
         self.player = player
+        self.dart_score_image_frames = {
+            "camera_A": {"last_frame": None, "new_actual_frame": None}, 
+            "camera_B": {"last_frame": None, "new_actual_frame": None},
+            "camera_C": {"last_frame": None, "new_actual_frame": None}
+            }
+        self.__dart_score_image_frame_buffer = None
     
     def dart(self, dart):
         """Add a new dart throw to the turn.
@@ -167,6 +173,45 @@ class Turn:
                     self.player.dart(dart)
             return last_dart
         return None
+    
+
+    
+    def update_current_dart_score_raw_image_frames(self, raw_dart_frame_camera_A, raw_dart_frame_camera_B, raw_dart_frame_camera_C):
+        self.dart_score_image_frames["camera_A"]["last_frame"] = self.dart_score_image_frames["camera_A"]["new_actual_frame"]
+        self.dart_score_image_frames["camera_B"]["last_frame"] = self.dart_score_image_frames["camera_B"]["new_actual_frame"]
+        self.dart_score_image_frames["camera_C"]["last_frame"] = self.dart_score_image_frames["camera_C"]["new_actual_frame"]
+
+        self.dart_score_image_frames["camera_A"]["new_actual_frame"] = raw_dart_frame_camera_A
+        self.dart_score_image_frames["camera_B"]["new_actual_frame"] = raw_dart_frame_camera_B
+        self.dart_score_image_frames["camera_C"]["new_actual_frame"] = raw_dart_frame_camera_C
+
+    def update_current_dart_score_raw_image_frames_from_buffer(self):
+        try:
+            self.dart_score_image_frames["camera_A"]["last_frame"] = self.dart_score_image_frames["camera_A"]["new_actual_frame"]
+            self.dart_score_image_frames["camera_B"]["last_frame"] = self.dart_score_image_frames["camera_B"]["new_actual_frame"]
+            self.dart_score_image_frames["camera_C"]["last_frame"] = self.dart_score_image_frames["camera_C"]["new_actual_frame"]
+
+            self.dart_score_image_frames["camera_A"]["new_actual_frame"] = self.__dart_score_image_frame_buffer["camera_A"]
+            self.dart_score_image_frames["camera_B"]["new_actual_frame"] = self.__dart_score_image_frame_buffer["camera_B"]
+            self.dart_score_image_frames["camera_C"]["new_actual_frame"] = self.__dart_score_image_frame_buffer["camera_C"]
+
+            self.__clear_dart_score_image_frame_buffer()
+        except Exception as e:
+            # Logging ?
+            raise e
+
+    def set_dart_score_image_frame_buffer(self, raw_dart_frame_camera_A, raw_dart_frame_camera_B, raw_dart_frame_camera_C):
+        self.__dart_score_image_frame_buffer = {
+            "camera_A": raw_dart_frame_camera_A, 
+            "camera_B": raw_dart_frame_camera_B,
+            "camera_C": raw_dart_frame_camera_C
+            }
+        
+    def check_dart_score_image_frame_buffer_is_None(self):
+        return self.__dart_score_image_frame_buffer == None
+    
+    def __clear_dart_score_image_frame_buffer(self):
+        self.__dart_score_image_frame_buffer = None
     
 
 class Leg:
@@ -319,7 +364,12 @@ class Game:
         self.update = False
         self.current_leg = None
         self.is_bust = False
-        self.winner_index = None 
+        self.winner_index = None
+        self.dart_score_basis_image_frames = {
+            "camera_A": None, 
+            "camera_B": None,
+            "camera_C": None
+            }
 
     def start_game(self, first_to, format, name_a, name_b):
         """Initialize a new game with the specified parameters.
@@ -495,3 +545,12 @@ class Game:
                 self.update = True
                 return True
         return False
+    
+    def initialize_basis_dart_score_raw_image_frames(self, raw_dart_frame_camera_A, raw_dart_frame_camera_B, raw_dart_frame_camera_C):
+        self.dart_score_basis_image_frames["camera_A"] = raw_dart_frame_camera_A
+        self.dart_score_basis_image_frames["camera_B"] = raw_dart_frame_camera_B
+        self.dart_score_basis_image_frames["camera_C"] = raw_dart_frame_camera_C
+
+
+    def get_basis_dart_score_raw_image_frames(self):
+        return self.dart_score_basis_image_frames

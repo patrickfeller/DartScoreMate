@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template, request, redirect, jsonify, Response, session
-from . import gamedata
-from . import camera_handling
+from src.flask_app import gamedata
+from src.flask_app import camera_handling
 import cv2 
 import os
 from dotenv import load_dotenv
 from groq import Groq, AuthenticationError
-from . import aid_functions_sql 
+from src.flask_app import aid_functions_sql 
 from mysql.connector.errors import Error
-from . import recommender
+from src.flask_app import recommender
 from flask_session import Session
 import random
 import platform
+from src.flask_app.detection import take_frame_of_dartboard_with_camera
+from src.flask_app.Camera_ID import Camera_ID
 
 
 # load environment variables
@@ -89,6 +91,14 @@ def new_game():
     # -> transfer to MariaDB
     # Initialize new game with player names and format
     gameRef.start_game(first_to, format, playerA, playerB)
+
+    
+    success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(Camera_ID.A)
+    success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(Camera_ID.B)
+    success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(Camera_ID.C)
+
+    gameRef.initialize_basis_dart_score_raw_image_frames(dartboard_frame_camera_A, dartboard_frame_camera_B, dartboard_frame_camera_C)
+
     return redirect('/game/'+playerA+'/'+playerB+'/'+str(format)+'/'+str(first_to))
 
 
@@ -104,6 +114,15 @@ def game(playerA, playerB, format, first_to):
 # Route for handling throws
 @app.route("/throw")
 def handle_throw():
+    if gameRef.current_leg.current_turn.check_dart_score_image_frame_buffer_is_None():
+        success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(Camera_ID.A)
+        success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(Camera_ID.B)
+        success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(Camera_ID.C)
+
+        gameRef.current_leg.current_turn.update_current_dart_score_raw_image_frames(dartboard_frame_camera_A, dartboard_frame_camera_B, dartboard_frame_camera_C)
+    else:
+        gameRef.current_leg.current_turn.update_current_dart_score_raw_image_frames_from_buffer()
+
     throw_number = int(request.args.get('throwNumber', 1))
     base_score = int(request.args.get('score', 0))
     multiplier = int(request.args.get('multiplier', 1))
@@ -113,7 +132,7 @@ def handle_throw():
     
     # Try to make the throw
     gameRef.dart(dart)    
-    
+
     # Get updated game state
     scores = gameRef.get_totals()
     current_throws = gameRef.get_scores()
@@ -318,6 +337,24 @@ def reset_chat():
 
 @app.route("/get_score_prediction", methods = ["GET"])
 def get_score_prediction():
+    def image_processed_dart_score():
+        from src.flask_app.detection import calculating_dart_deviation_of_camera_perspectives, calculating_dart_scoring_points
+
+        basis_dartboard_frames = gameRef.get_basis_dart_score_raw_image_frames()
+
+        success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(Camera_ID.A)
+        success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(Camera_ID.B)
+        success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(Camera_ID.C)
+
+        gradient_camera_a = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frames["camera_A"], dartboard_frame_camera_A, "A")
+        gradient_camera_b = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frames["camera_B"], dartboard_frame_camera_B, "B")
+        gradient_camera_c = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frames["camera_C"], dartboard_frame_camera_C, "C")
+
+        gameRef.current_leg.current_turn.set_dart_score_image_frame_buffer(dartboard_frame_camera_A, dartboard_frame_camera_B, dartboard_frame_camera_C)
+
+        return calculating_dart_scoring_points(gradient_camera_a, gradient_camera_b, gradient_camera_c)
+
+
     def random_dart_score():
         # Choose a base score from 0, 1–20, or 25
         score = random.choice([0] + list(range(1, 21)) + [25])
@@ -332,7 +369,9 @@ def get_score_prediction():
         
         # Return JSON-serializable result
         return score, multiplier
-    score_prediction = random_dart_score()
+
+    score_prediction = image_processed_dart_score()
+
     return jsonify({"score": score_prediction[0], "multiplier": score_prediction[1]})
 
 if __name__ == "__main__":
