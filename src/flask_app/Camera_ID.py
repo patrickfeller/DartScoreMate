@@ -1,6 +1,6 @@
 from enum import Enum
 
 class Camera_ID(Enum):
-    A = 0
-    B = 1
-    C = 2
+    A = 2
+    B = 4
+    C = 0

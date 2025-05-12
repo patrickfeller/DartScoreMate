@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template, request, redirect, jsonify, Response, session
-from src.flask_app import gamedata
-from src.flask_app import camera_handling
+import gamedata
+import camera_handling
 import cv2 
 import os
 from dotenv import load_dotenv
 from groq import Groq, AuthenticationError
-from src.flask_app import aid_functions_sql 
+import aid_functions_sql 
 from mysql.connector.errors import Error
-from src.flask_app import recommender
+import recommender
 from flask_session import Session
 import random
 import platform
-from src.flask_app.detection import take_frame_of_dartboard_with_camera
-from src.flask_app.Camera_ID import Camera_ID
+from detection import take_frame_of_dartboard_with_camera
+import Camera_ID
 
 
 # load environment variables
@@ -93,9 +93,9 @@ def new_game():
     gameRef.start_game(first_to, format, playerA, playerB)
 
     
-    success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(Camera_ID.A)
-    success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(Camera_ID.B)
-    success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(Camera_ID.C)
+    success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(2)
+    success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(4)
+    success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(0)
 
     gameRef.initialize_basis_dart_score_raw_image_frames(dartboard_frame_camera_A, dartboard_frame_camera_B, dartboard_frame_camera_C)
 
@@ -115,9 +115,9 @@ def game(playerA, playerB, format, first_to):
 @app.route("/throw")
 def handle_throw():
     if gameRef.current_leg.current_turn.check_dart_score_image_frame_buffer_is_None():
-        success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(Camera_ID.A)
-        success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(Camera_ID.B)
-        success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(Camera_ID.C)
+        success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(2)
+        success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(4)
+        success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(0)
 
         gameRef.current_leg.current_turn.update_current_dart_score_raw_image_frames(dartboard_frame_camera_A, dartboard_frame_camera_B, dartboard_frame_camera_C)
     else:
@@ -338,9 +338,9 @@ def reset_chat():
 @app.route("/get_score_prediction", methods = ["GET"])
 def get_score_prediction():
     def image_processed_dart_score():
-        from src.flask_app.detection import calculating_dart_deviation_of_camera_perspectives, calculating_dart_scoring_points
+        from detection import calculating_dart_deviation_of_camera_perspectives, calculating_dart_scoring_points
 
-        if gameRef.current_leg.current_turn.dart_score_image_frames["camera_A"]["new_actual_frame"] == None:
+        if gameRef.current_leg.current_turn.dart_score_image_frames["camera_A"]["new_actual_frame"] is None:
             basis_dartboard_frame_cameraf_a = gameRef.get_basis_dart_score_raw_image_frames()["camera_A"]
             basis_dartboard_frame_cameraf_b = gameRef.get_basis_dart_score_raw_image_frames()["camera_B"]
             basis_dartboard_frame_cameraf_c = gameRef.get_basis_dart_score_raw_image_frames()["camera_C"]
@@ -349,9 +349,9 @@ def get_score_prediction():
             basis_dartboard_frame_cameraf_b = gameRef.current_leg.current_turn.dart_score_image_frames["camera_B"]["new_actual_frame"]
             basis_dartboard_frame_cameraf_c = gameRef.current_leg.current_turn.dart_score_image_frames["camera_C"]["new_actual_frame"]
 
-        success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(Camera_ID.A)
-        success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(Camera_ID.B)
-        success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(Camera_ID.C)
+        success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(2)
+        success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(4)
+        success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(0)
 
         gradient_camera_a = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frame_cameraf_a, dartboard_frame_camera_A, "A")
         gradient_camera_b = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frame_cameraf_b, dartboard_frame_camera_B, "B")

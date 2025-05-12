@@ -1,8 +1,8 @@
-from src.flask_app.image_processing import aid_functions_image_processing, image_processing, dart_tip_processing
+from image_processing import aid_functions_image_processing, image_processing, dart_tip_processing
 import math
 import cmath
 import cv2
-from src.flask_app.gamedata import Dart
+from gamedata import Dart
 
 # constant for camera field of view 
 FOV = 100
@@ -116,7 +116,7 @@ def calculating_dart_deviation_of_camera_perspectives(basis_dart_frame, detect_d
     blurred_ksize = aid_functions_image_processing.create_frame_difference(cropped_basis_frame, cropped_detect_dart_frame, medianfilterkernelsize)
 
     #print("image processing")
-    final_ksize, thresh_ksize = image_processing.image_processing(blurred_ksize)
+    final_ksize, thresh_ksize = image_processing.image_processing(blurred_ksize, camera_id)
 
     #print("find dart tip Gradient - final image")
     tipfinal_ksize = dart_tip_processing.dart_tip_processing(final_ksize)

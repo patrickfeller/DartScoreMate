@@ -1,7 +1,9 @@
 import cv2
 import skimage
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import savefig
 
-def image_processing(blurred_diff_frame):
+def image_processing(blurred_diff_frame, camera_id):
     # Canny Algorithm
     can = cv2.Canny(blurred_diff_frame, 30, 90)
     #print("Canny Algorithm")
@@ -86,7 +88,12 @@ def image_processing(blurred_diff_frame):
 
     # Combine thresholded image with Canny edge detector
     final = img_preprocessed | can
-    #plt.show(plt.imshow(final))
+    
+    # Save the final image
+    plt.imshow(final, cmap='gray')  # Ensure the image is displayed in grayscale
+    plt.axis('off')  # Turn off axes for better visualization
+    plt.savefig(f"logging/final_image_{camera_id}.jpg", bbox_inches='tight')  # Save the figure without extra whitespace
+    plt.close()  # Close the figure to free memory
 
     #print("Returns")
     # Returns:
