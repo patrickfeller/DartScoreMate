@@ -17,24 +17,28 @@ def calculating_dart_scoring_points(gradient_camera_a, gradient_camera_b, gradie
     cCameraX = 0
     cCameraY = 345
 
-    points = []
+    if gradient_camera_a != "Hand" and gradient_camera_b != "Hand" and gradient_camera_c != "Hand":
+        points = []
 
-    points.append(intersect(aCameraX, aCameraY, gradient_camera_a, bCameraX, bCameraY, gradient_camera_b))
-    points.append(intersect(aCameraX, aCameraY, gradient_camera_a, cCameraX, cCameraY, gradient_camera_c))
-    points.append(intersect(bCameraX, bCameraY, gradient_camera_b, cCameraX, cCameraY, gradient_camera_c))
+        points.append(intersect(aCameraX, aCameraY, gradient_camera_a, bCameraX, bCameraY, gradient_camera_b))
+        points.append(intersect(aCameraX, aCameraY, gradient_camera_a, cCameraX, cCameraY, gradient_camera_c))
+        points.append(intersect(bCameraX, bCameraY, gradient_camera_b, cCameraX, cCameraY, gradient_camera_c))
 
-    #print(f"points: {points}")
+        #print(f"points: {points}")
 
-    xAvg = (sum([i[0] for i in points]))/len(points)
-    yAvg = (sum([i[1] for i in points]))/len(points)
+        xAvg = (sum([i[0] for i in points]))/len(points)
+        yAvg = (sum([i[1] for i in points]))/len(points)
 
-    #print(f"calculated Average points: xAvg:{xAvg}; yAvg:{yAvg}")
+        #print(f"calculated Average points: xAvg:{xAvg}; yAvg:{yAvg}")
 
-    dart_score = score_dart(xAvg, yAvg)
+        dart_score = score_dart(xAvg, yAvg)
 
-    #print(f"Dart Score: {dart_score.to_string()}")
+        #print(f"Dart Score: {dart_score.to_string()}")
 
-    return dart_score.score, dart_score.multiplier
+        return dart_score.score, dart_score.multiplier
+    
+    else:
+        return 0,0
 
 
 def score_dart(x, y):
@@ -126,13 +130,15 @@ def calculating_dart_deviation_of_camera_perspectives(basis_dart_frame, detect_d
         gradient_image = tipfinal_ksize
     else:
         gradient_image = tipthresh_ksize
-    
 
+    if gradient_image == "Hand":
+        return gradient_image
+    
     if camera_id == "A":
-        #gradient = get_angle_in_gradient_a(gradient_image, cropped_resize_width, FOV)
+        gradient = get_angle_in_gradient_a(gradient_image, cropped_resize_width, FOV)
 
         # D20
-        gradient = get_angle_in_gradient_a([294.7], cropped_resize_width, FOV) # Test with manually measured x Pos = 294.7
+        #gradient = get_angle_in_gradient_a([294.7], cropped_resize_width, FOV) # Test with manually measured x Pos = 294.7
 
         # D25
         #gradient = get_angle_in_gradient_a([577], cropped_resize_width, FOV) # Test with manually measured x Pos = 577
@@ -141,10 +147,10 @@ def calculating_dart_deviation_of_camera_perspectives(basis_dart_frame, detect_d
         #gradient = get_angle_in_gradient_a([491.2], cropped_resize_width, FOV) # Test with manually measured x Pos = 491.2
         
     elif camera_id == "B":
-        #gradient = get_angle_in_gradient_b(gradient_image, cropped_resize_width, FOV)
+        gradient = get_angle_in_gradient_b(gradient_image, cropped_resize_width, FOV)
 
         # D20
-        gradient = get_angle_in_gradient_b([947.9], cropped_resize_width, FOV) # Test with manually measured x Pos = 947.9
+        #gradient = get_angle_in_gradient_b([947.9], cropped_resize_width, FOV) # Test with manually measured x Pos = 947.9
 
         # D25
         #gradient = get_angle_in_gradient_b([673], cropped_resize_width, FOV) # Test with manually measured x Pos = 673
@@ -153,10 +159,10 @@ def calculating_dart_deviation_of_camera_perspectives(basis_dart_frame, detect_d
         #gradient = get_angle_in_gradient_b([835.9], cropped_resize_width, FOV) # Test with manually measured x Pos = 835.9
 
     elif camera_id == "C":
-        #gradient = get_angle_in_gradient_c(gradient_image, cropped_resize_width, FOV)
+        gradient = get_angle_in_gradient_c(gradient_image, cropped_resize_width, FOV)
 
         # D20
-        gradient = get_angle_in_gradient_c([696.3], cropped_resize_width, FOV) # Test with manually measured x Pos = 696.3
+        #gradient = get_angle_in_gradient_c([696.3], cropped_resize_width, FOV) # Test with manually measured x Pos = 696.3
 
         # D25
         #gradient = get_angle_in_gradient_c([702], cropped_resize_width, FOV) # Test with manually measured x Pos = 702
