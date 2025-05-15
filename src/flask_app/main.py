@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import Flask, render_template, request, redirect, jsonify, Response, session
+from flask import Flask, render_template, request, redirect, jsonify, Response, session, url_for
 import gamedata
 import camera_handling
 import cv2 
@@ -14,7 +14,7 @@ from flask_session import Session
 import random
 import platform
 from detection import take_frame_of_dartboard_with_camera
-import Camera_ID
+from Camera_ID import Camera_ID
 
 
 # load environment variables
@@ -45,14 +45,25 @@ def play():
 
 
 # Main page for the game
-@app.route("/board-status")
+@app.route("/board-status",methods=["GET", "POST"])
 def boardstatus():
     cam = camera_handling.camera()
     available_cameras = cam.get_available_cameras()
     # TODO: Camera settings are not yet implemented
     resulution_options = cam.resulution_options
-    fps_options = cam.fps_options    
-    return render_template("board-status.html", avaiable_cameras = available_cameras, resulution_options = resulution_options, fps_options = fps_options)   
+    fps_options = cam.fps_options
+    
+    if request.method == "POST":
+        session["camera_id_A"] = request.form["camera_a"]
+        session["camera_id_B"] = request.form["camera_b"]
+        session["camera_id_C"] = request.form["camera_c"]
+        # You might want to add a flash message or redirect here
+        return redirect(url_for('play'))
+        
+    return render_template("board-status.html",
+                       avaiable_cameras = available_cameras,
+                       resulution_options = resulution_options,
+                       fps_options = fps_options)   
 
 # Convert still camera frames to video
 def generate_frames(camera_id):
@@ -92,10 +103,15 @@ def new_game():
     # Initialize new game with player names and format
     gameRef.start_game(first_to, format, playerA, playerB)
 
+    # Get camera IDs from session
+    camera_id_A = int(session.get("camera_id_A", Camera_ID.A.value))
+    camera_id_B = int(session.get("camera_id_B", Camera_ID.B.value))
+    camera_id_C = int(session.get("camera_id_C", Camera_ID.C.value))
+    print(f"Camera IDs new_Game: {camera_id_A}, {camera_id_B}, {camera_id_C}")
     
-    success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(2)
-    success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(4)
-    success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(0)
+    success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(camera_id_A)
+    success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(camera_id_B)
+    success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(camera_id_C)
 
     gameRef.initialize_basis_dart_score_raw_image_frames(dartboard_frame_camera_A, dartboard_frame_camera_B, dartboard_frame_camera_C)
 
@@ -114,10 +130,16 @@ def game(playerA, playerB, format, first_to):
 # Route for handling throws
 @app.route("/throw")
 def handle_throw():
+    camera_id_A = int(session.get("camera_id_A", Camera_ID.A.value))
+    camera_id_B = int(session.get("camera_id_B", Camera_ID.B.value))
+    camera_id_C = int(session.get("camera_id_C", Camera_ID.C.value))
+
+    print(f"Camera IDs handle_throw: {camera_id_A}, {camera_id_B}, {camera_id_C}")
+
     if gameRef.current_leg.current_turn.check_dart_score_image_frame_buffer_is_None():
-        success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(2)
-        success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(4)
-        success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(0)
+        success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(camera_id_A)
+        success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(camera_id_B)
+        success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(camera_id_C)
 
         gameRef.current_leg.current_turn.update_current_dart_score_raw_image_frames(dartboard_frame_camera_A, dartboard_frame_camera_B, dartboard_frame_camera_C)
     else:
@@ -339,6 +361,11 @@ def reset_chat():
 def get_score_prediction():
     def image_processed_dart_score():
         from detection import calculating_dart_deviation_of_camera_perspectives, calculating_dart_scoring_points
+        # Get camera IDs from session
+        camera_id_A = int(session.get("camera_id_A", Camera_ID.A.value))
+        camera_id_B = int(session.get("camera_id_B", Camera_ID.B.value))
+        camera_id_C = int(session.get("camera_id_C", Camera_ID.C.value))
+        print(f"Camera IDs get_score_prediction: {camera_id_A}, {camera_id_B}, {camera_id_C}")
 
         if gameRef.current_leg.current_turn.dart_score_image_frames["camera_A"]["new_actual_frame"] is None:
             basis_dartboard_frame_cameraf_a = gameRef.get_basis_dart_score_raw_image_frames()["camera_A"]
@@ -349,9 +376,9 @@ def get_score_prediction():
             basis_dartboard_frame_cameraf_b = gameRef.current_leg.current_turn.dart_score_image_frames["camera_B"]["new_actual_frame"]
             basis_dartboard_frame_cameraf_c = gameRef.current_leg.current_turn.dart_score_image_frames["camera_C"]["new_actual_frame"]
 
-        success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(2)
-        success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(4)
-        success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(0)
+        success_camera_A, dartboard_frame_camera_A = take_frame_of_dartboard_with_camera(camera_id_A)
+        success_camera_B, dartboard_frame_camera_B = take_frame_of_dartboard_with_camera(camera_id_B)
+        success_camera_C, dartboard_frame_camera_C = take_frame_of_dartboard_with_camera(camera_id_C)
 
         gradient_camera_a = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frame_cameraf_a, dartboard_frame_camera_A, "A")
         gradient_camera_b = calculating_dart_deviation_of_camera_perspectives(basis_dartboard_frame_cameraf_b, dartboard_frame_camera_B, "B")
