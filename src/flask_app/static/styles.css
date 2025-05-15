@@ -671,3 +671,40 @@ label.form {
 .reset-button:hover {
     background-color: #b22;
 }
+
+.button-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.settings-button {
+    background: #ff7a18;
+    color: white;
+    padding: 15px 40px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.settings-button:hover {
+    background: #af002d;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.settings-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+@media screen and (max-width: 768px) {
+    .settings-button {
+        padding: 12px 30px;
+        font-size: 1.1em;
+    }
+}
