@@ -1,51 +1,56 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="camera_status">
-    <div class="cam_item">
-        <h2 class="cam-status">Camera A</h2>
-        <img class="cam-status" id="camera_a_feed" src="{{ url_for('video_feed', camera_id=0) }}">
-        <select class="form" name="camera" id="camera_a" required onchange="selectCamera('a')">
-            <option value="">Select Camera</option>
-            {% for camera in avaiable_cameras %}
-                <option value="{{ camera }}">Camera {{ camera }}</option>
-            {% endfor %}
-        </select>
+<form method="POST" action="{{ url_for('boardstatus') }}">
+    <div class="camera_status">
+        <div class="cam_item">
+            <h2 class="cam-status">Camera A</h2>
+            <img class="cam-status" id="camera_a_feed" src="{{ url_for('video_feed', camera_id=0) }}">
+            <select class="form" name="camera_a" id="camera_a" required onchange="selectCamera('a')">
+                <option value="">Select Camera</option>
+                {% for camera in avaiable_cameras %}
+                    <option value="{{ camera }}">Camera {{ camera }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="cam_item">
+            <h2 class="cam-status one-row">Camera B</h2>
+            <img class="cam-status" id="camera_b_feed" src="{{ url_for('video_feed', camera_id=1) }}">
+            <select class="form" name="camera_b" id="camera_b" required onchange="selectCamera('b')">
+                <option value="">Select Camera</option>
+                {% for camera in avaiable_cameras %}
+                    <option value="{{ camera }}">Camera {{ camera }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="cam_item">
+            <h2 class="cam-status one-row">Camera C</h2>
+            <img class="cam-status" id="camera_c_feed" src="{{ url_for('video_feed', camera_id=2) }}">
+            <select class="form" name="camera_c" id="camera_c" required onchange="selectCamera('c')">
+                <option value="">Select Camera</option>
+                {% for camera in avaiable_cameras %}
+                    <option value="{{ camera }}">Camera {{ camera }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="cam_settings">
+            <h2 class="cam-status">Camera Settings</h2>
+            <select class="form" name="camera_resolution" id="camera_resolution" required>
+                <option value="">Select Resolution</option>
+                {% for resolution in resulution_options %}
+                    <option value="{{ resolution }}">{{ resolution }}</option>
+                {% endfor %}
+            </select>
+            <select class="form" name="camera_fps" id="camera_fps" required>
+                <option value="">Select FPS</option>
+                {% for fps in fps_options %}
+                    <option value="{{ fps }}">{{ fps }}</option>
+                {% endfor %}
+            </select>
+        </div>        
     </div>
-    <div class="cam_item">
-        <h2 class="cam-status one-row">Camera B</h2>
-        <img class="cam-status" id="camera_b_feed" src="{{ url_for('video_feed', camera_id=1) }}">
-        <select class="form" name="camera" id="camera_b" required onchange="selectCamera('b')">
-            <option value="">Select Camera</option>
-            {% for camera in avaiable_cameras %}
-                <option value="{{ camera }}">Camera {{ camera }}</option>
-            {% endfor %}
-        </select>
+    <div class="button-container">
+        <button type="submit" class="settings-button">Save Camera Settings</button>
     </div>
-    <div class="cam_item">
-        <h2 class="cam-status one-row">Camera C</h2>
-        <img class="cam-status" id="camera_c_feed" src="{{ url_for('video_feed', camera_id=2) }}">
-        <select class="form" name="camera" id="camera_c" required onchange="selectCamera('c')">
-            <option value="">Select Camera</option>
-            {% for camera in avaiable_cameras %}
-                <option value="{{ camera }}">Camera {{ camera }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="cam_settings">
-        <h2 class="cam-status">Camera Settings</h2>
-        <select class="form" name="camera_resolution" id="camera_resolution" required>
-            <option value="">Select Resolution</option>
-            {% for resolution in resulution_options %}
-                <option value="{{ resolution }}">{{ resolution }}</option>
-            {% endfor %}
-        </select>
-        <select class="form" name="camera_fps" id="camera_fps" required>
-            <option value="">Select FPS</option>
-            {% for fps in fps_options %}
-                <option value="{{ fps }}">{{ fps }}</option>
-            {% endfor %}
-        </select>
-    </div>
-</div>
+</form>
 {% endblock %}
