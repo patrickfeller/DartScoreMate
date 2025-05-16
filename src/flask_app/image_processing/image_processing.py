@@ -1,7 +1,7 @@
 import cv2
 import skimage
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import savefig
+# from matplotlib.pyplot import savefig
 
 def image_processing(blurred_diff_frame, camera_id):
     # Canny Algorithm
@@ -90,10 +90,10 @@ def image_processing(blurred_diff_frame, camera_id):
     final = img_preprocessed | can
     
     # Save the final image
-    plt.imshow(final, cmap='gray')  # Ensure the image is displayed in grayscale
-    plt.axis('off')  # Turn off axes for better visualization
-    plt.savefig(f"logging/final_image_{camera_id}.jpg", bbox_inches='tight')  # Save the figure without extra whitespace
-    plt.close()  # Close the figure to free memory
+    # plt.imshow(final, cmap='gray')  # Ensure the image is displayed in grayscale
+    # plt.axis('off')  # Turn off axes for better visualization
+    # plt.savefig(f"logging/final_image_{camera_id}.jpg", bbox_inches='tight')  # Save the figure without extra whitespace
+    # plt.close()  # Close the figure to free memory
 
     #print("Returns")
     # Returns:
