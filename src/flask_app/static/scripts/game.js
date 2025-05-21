@@ -1,6 +1,6 @@
 let currentThrow = 0; // 0 for no throws, 1-3 for current throw number
 let multiplier = 1; // 1 for single, 2 for double, 3 for triple
-let currentPlayer = 0; // 0 for Player A, 1 for Player B
+let currentPlayer = parseInt(document.querySelector('[data-current-player]').dataset.currentPlayer); // 0 for Player A, 1 for Player B
 let isCountdownActive = false; // Track if countdown is active
 let action = '';
 let lastThrows = [];
@@ -296,7 +296,8 @@ function handleScore(score) {
                 // Only switch players if we have 3 throws OR a BUST occurred
                 if (currentThrow === 3 || data.isBust) {
                     currentThrow = 0;  // Reset throw counter
-                    currentPlayer = (currentPlayer + 1) % 2;  // Switch player
+                    // Update current player based on backend state
+                    currentPlayer = data.currentPlayer;
                     updatePlayerTurn();
                     lastThrows = [];
                 }
@@ -306,7 +307,7 @@ function handleScore(score) {
             multiplier = 1;
             document.getElementById('double').style.backgroundColor = '';
             document.getElementById('triple').style.backgroundColor = '';
-            document.getElementById('bull-button').disabled = false;  // Re-enable bull button when resetting
+            document.getElementById('bull-button').disabled = false;
         });
     } else {
         alert('You have already made three throws. Please click Next.');
