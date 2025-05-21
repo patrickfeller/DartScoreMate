@@ -109,18 +109,27 @@ function updateDisplay(data) {
         roundSumElement.textContent = roundSum;
     }
   
-    // Handle win condition
+    // Handle win condition, when Game is over
     if (data.justWon) {
-        showWinnerAnimation(data.winnerIndex);
-        
+        if (data.GameOver) {
+            showWinnerAnimation(data.winnerIndex);
+            setTimeout(() => {          // Redirect to homepage after 10 seconds
+                window.location.href = '/';
+            }, 10000);
+        } else {
+            showWinnerLegAnimation(data.winnerIndex);
+            setTimeout(() => {
+                // Create a form and submit it programmatically
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/new_leg';
+                document.body.appendChild(form);
+                form.submit();
+            }, 10000);
+        };
         // Add winner class to the winning player's box
         const playerBoxes = document.querySelectorAll('.player-box');
         playerBoxes[data.winnerIndex].classList.add('winner');
-        
-        // Redirect to homepage after 10 seconds
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 10000);
     }
 }
 
@@ -152,7 +161,35 @@ function showWinnerAnimation(winnerIndex) {
     const winnerElement = document.createElement('div');
     winnerElement.className = 'winner-name';
     const winnerName = playerNames[winnerIndex] || 'Unknown Player';
-    winnerElement.textContent = winnerName + ' hat gewonnen!';
+    winnerElement.textContent = winnerName + ' hat Spiel gewonnen!';
+    container.appendChild(winnerElement);
+
+    // Add confetti
+    createConfetti();
+
+    // Remove animation after 10 seconds
+    setTimeout(() => {
+        container.remove();
+    }, 10000);
+}
+
+function showWinnerLegAnimation(winnerIndex) {
+    // Create animation container if it doesn't exist
+    let container = document.querySelector('.winner-animation');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'winner-animation';
+        document.body.appendChild(container);
+    }
+
+    // Clear previous content
+    container.innerHTML = '';
+
+    // Create winner name element
+    const winnerElement = document.createElement('div');
+    winnerElement.className = 'winner-name';
+    const winnerName = playerNames[winnerIndex] || 'Unknown Player';
+    winnerElement.textContent = winnerName + ' hat Leg gewonnen!';
     container.appendChild(winnerElement);
 
     // Add confetti
