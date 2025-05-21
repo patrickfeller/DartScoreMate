@@ -188,12 +188,15 @@ def load_game():
         gameRef.players[1].total_score = game_data["score_player_B"]
         
         ### ---> add the correct data from MARIADB HERE
-        return jsonify({"namePlayerA": "Gustaf",
-                        "namePlayerB": "Bernd",
-                        "scorePlayerA": 300,
-                        "scorePlayerB": 200,
-                        "gamemode":"301", 
-                        "redirect_url": f'/game/Gustaf/Bernd/301/1'})
+        name_a  = game_data["player_A"]
+        name_b  = game_data["player_B"]
+        game_mode = game_data["game_mode"]
+        return jsonify({"namePlayerA": name_a,
+                        "namePlayerB": name_b,
+                        "scorePlayerA": game_data["score_player_A"],
+                        "scorePlayerB": game_data["score_player_B"],
+                        "gamemode": game_mode, 
+                        "redirect_url": f'/game/{name_a}/{name_b}/{game_mode}/1'})
         # return redirect(f'/game/{game_data["player_A"]}/{game_data["player_B"]}/{game_data["game_mode"]}/1') 
         #statt redirect 4 elemente aus db ls json zurückgeben!!! weiterverarbeitet im js
 
