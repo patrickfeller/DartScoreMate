@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template, request, redirect, jsonify, Response, session
-from . import gamedata
-from . import camera_handling
+import gamedata
+import camera_handling
 import cv2 
 import os
 from dotenv import load_dotenv
 from groq import Groq, AuthenticationError
-from . import aid_functions_sql 
+import aid_functions_sql 
 from mysql.connector.errors import Error
-from . import recommender
+import recommender
 from flask_session import Session
 import random
 import platform
@@ -97,9 +97,38 @@ def new_game():
 def game(playerA, playerB, format, first_to):
     format = int(format)
     scores = gameRef.get_totals()
-    return render_template('game.html', playerA=playerA, playerB=playerB, format=format, 
-                         scoreA=scores[0], scoreB=scores[1])
+    first_to = int(first_to)
+    # list the wins of each player in a list
+    wins_players = [player.wins for player in gameRef.players]
+    return render_template('game.html',
+                           playerA=playerA,
+                           playerB=playerB,
+                           format=format,
+                           scoreA=scores[0],
+                           scoreB=scores[1],
+                           wins_playerA = wins_players[0],
+                           wins_playerB = wins_players[1],
+                           first_to=first_to)
 
+# Route for a new game round / new leg
+@app.route('/new_leg', methods=["POST"])
+def new_leg():
+    # Check if game is active
+    if gameRef.playing:
+        # Check if game is not over
+        if not gameRef.is_game_over():
+            # get current Game state
+            playerA, playerB = [player.name for player in gameRef.players]
+            format = gameRef.format
+            first_to = gameRef.first_to
+            # Start a new leg
+            return redirect('/game/'+playerA+'/'+playerB+'/'+str(format)+'/'+str(first_to))
+        # if game is over, redirect to start page
+        else:
+            return redirect('/play')
+    # if no game is active, redirect to start page
+    else:
+        return redirect('/play')
 
 # Route for handling throws
 @app.route("/throw")
@@ -116,6 +145,7 @@ def handle_throw():
     
     # Get updated game state
     scores = gameRef.get_totals()
+
     current_throws = gameRef.get_scores()
     active_player = gameRef.current_leg.player_index
     current_player_throws = current_throws[active_player]
@@ -126,8 +156,9 @@ def handle_throw():
         if double_out_recommendation and len(double_out_recommendation)<=3-throw_number:
             score_recommendation = recommender.get_recommendation(scores[active_player])
 
-    # Check if player has won
-    just_won, winner_index = gameRef.has_just_won()
+    # Check if player has won, the leg and / or the game
+    just_won, winner_index, playing= gameRef.has_just_won()
+    game_over = gameRef.is_game_over()
 
     # Prepare display score
     display_score = f"{multiplier}x{base_score}" if multiplier > 1 else str(base_score)
@@ -140,8 +171,9 @@ def handle_throw():
         "scoreB": scores[1],
         "currentThrows": current_throws,
         "isRoundComplete": gameRef.current_leg.change,
-        "isBust": gameRef.is_bust,  # Add this new flag
+        "isBust": gameRef.is_bust,
         "justWon": just_won,
+        "GameOver": game_over,
         "winnerIndex": winner_index if just_won else -1,
         "scoreRecommendation": score_recommendation
     })
