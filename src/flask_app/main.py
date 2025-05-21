@@ -98,7 +98,7 @@ def game(playerA, playerB, format, first_to):
     format = int(format)
     scores = gameRef.get_totals()
     first_to = int(first_to)
-    # list the wins of each player in a list
+    current_player = gameRef.current_leg.player_index
     wins_players = [player.wins for player in gameRef.players]
     return render_template('game.html',
                            playerA=playerA,
@@ -108,7 +108,8 @@ def game(playerA, playerB, format, first_to):
                            scoreB=scores[1],
                            wins_playerA = wins_players[0],
                            wins_playerB = wins_players[1],
-                           first_to=first_to)
+                           first_to=first_to,
+                           current_player=current_player)
 
 # Route for a new game round / new leg
 @app.route('/new_leg', methods=["POST"])
@@ -175,7 +176,8 @@ def handle_throw():
         "justWon": just_won,
         "GameOver": game_over,
         "winnerIndex": winner_index if just_won else -1,
-        "scoreRecommendation": score_recommendation
+        "scoreRecommendation": score_recommendation,
+        "currentPlayer": gameRef.current_leg.player_index
     })
 
 
