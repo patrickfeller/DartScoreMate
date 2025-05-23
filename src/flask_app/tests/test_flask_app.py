@@ -155,11 +155,13 @@ class FlaskUnitTest(unittest.TestCase):
     def test_two_players_game(self, MockGameRef):
         mock_gameRef_instance = MockGameRef.return_value
         mock_gameRef_instance.get_totals.return_value = [45, 60]
+        mock_gameRef_instance.get_wins.return_value = [0, 0]
 
         response = self.app.get("/game/Max/Moritz/301/2")
 
         self.assertEqual(response.status_code, 200)
 
+        self.assertEqual(response.status_code, 200)
         self.assertIn(b"Max", response.data)
         self.assertIn(b"Moritz", response.data)
     
