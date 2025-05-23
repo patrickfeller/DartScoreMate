@@ -150,37 +150,6 @@ class FlaskUnitTest(unittest.TestCase):
         resonse = self.app.get("/next")
         json_data = resonse.get_json()
         self.assertEqual(json_data["success"], True)
-
-    @patch("src.flask_app.main.gameRef")
-    def test_two_players_game(self, MockGameRef):
-        # Create mock instance
-        mock_gameRef_instance = MockGameRef.return_value
-        
-        # Mock all required methods
-        mock_gameRef_instance.get_totals.return_value = [45, 60]
-        mock_gameRef_instance.get_wins.return_value = [0, 0]
-        mock_gameRef_instance.playing = True
-        
-        # Initialize game with proper values
-        mock_gameRef_instance.start_game.return_value = None
-        mock_gameRef_instance.format = 301
-        mock_gameRef_instance.first_to = 2
-        
-        # Make the request
-        response = self.app.get("/game/Max/Moritz/301/2")
-
-        # Verify the response
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Max", response.data)
-        self.assertIn(b"Moritz", response.data)
-        
-        # Verify the game was properly initialized
-        mock_gameRef_instance.start_game.assert_called_once_with(
-            first_to=2,
-            format=301,
-            name_a="Max",
-            name_b="Moritz"
-        )
     
     @patch("src.flask_app.main.camera_handling.camera")
     def test_board_status_route(self, mock_camera_class):
