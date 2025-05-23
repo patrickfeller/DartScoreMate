@@ -306,6 +306,9 @@ class Player:
         """Reset the player's score to the initial format."""
         self.score = self.format
 
+    def reset_wins(self):
+        """Reset the player's win when new game."""
+        self.wins = 0
 
 class Game:
     """Manages the complete dart game session.
@@ -361,6 +364,7 @@ class Game:
         self.update = True
         self.clear = False
         self.just_won = False
+        self.game_over = False
 
     def get_game_history(self):
         """Return the history of all completed games.
@@ -396,6 +400,7 @@ class Game:
                 if player.wins >= self.first_to:
                     self.game_over = True
                     self.playing = False
+                    self.reset_player_wins()
                     return
                 
                 self.reset()
@@ -516,6 +521,11 @@ class Game:
         self.update = False
         return result
     
+    def reset_player_wins(self):
+        """Reset all players' wins to 0."""
+        for player in self.players:
+            player.reset_wins()
+
     def reset(self):
         """Reset all players' scores to their initial values."""
         for player in self.players:
