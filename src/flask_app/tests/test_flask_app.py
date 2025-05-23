@@ -156,7 +156,7 @@ class FlaskUnitTest(unittest.TestCase):
         mock_gameRef_instance = MockGameRef.return_value
         mock_gameRef_instance.get_totals.return_value = [45, 60]
 
-        response = self.app.get("/game/Max/Moritz/301/25")
+        response = self.app.get("/game/Max/Moritz/301/2")
 
         self.assertEqual(response.status_code, 200)
 
