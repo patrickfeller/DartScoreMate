@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, request, redirect, jsonify, Response, session
-from . import gamedata
-from . import camera_handling
+import gamedata
+import camera_handling
 import cv2 
 from flask_session import Session
 from dotenv import load_dotenv
 from mysql.connector.errors import Error
-from . import aid_functions_sql 
-from . import recommender
+import aid_functions_sql 
+import recommender
 import random
 import platform
 from groq import Groq
@@ -181,7 +181,9 @@ def save_game():
     scoreA, scoreB = gameRef.get_totals()
     playerA, playerB = [p.name for p in gameRef.players]
     game_mode = gameRef.format
-
+    legs_played = len(gameRef.legs_played)
+    active_player = gameRef.current_leg.current_player()
+    current_throws = gameRef.get_scores()
     conn = aid_functions_sql.get_db_connection()
     cursor = conn.cursor()
 
@@ -219,6 +221,93 @@ def save_game():
         cursor.close()
         conn.close()
 
+@app.route("/chat", methods=["POST"])
+def chat():
+    api_key = os.getenv("GROQ_API_KEY", "")
+    if api_key:
+            # Groq Client Setup
+        client = Groq(
+            api_key=api_key
+        )
+        try:
+            # Debug-Ausgabe für die Anfrage
+            print("Empfangene Anfrage:", request.json)
+            
+            # Hole die Nachricht aus der Anfrage
+            user_message = request.json.get("message", "")
+            if not user_message:
+                return jsonify({"error": "Keine Nachricht empfangen"}), 400
+                
+            print("Verarbeite Nachricht:", user_message)  # Debug-Ausgabe
+            
+            prompt = """
+                        Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte alle Fragen rund 
+                        um das Dartspielen, einschließlich Regeln, Techniken, Ausrüstung und Geschichte. 
+                        Sei freundlich und hilfreich."
+            """
+
+            # Starte die Nachrichtenliste mit dem Systemprompt
+            messages = [{"role": "system", "content": prompt}]
+
+           # Füge bisherige Chat-Historie hinzu
+            history = session.get("chat_history", [])
+
+            for entry in history:
+                messages.append({"role": "user", "content": entry["user"]})
+                messages.append({"role": "assistant", "content": entry["bot"]})
+
+            messages.append({"role": "user", "content": user_message})
+            try:
+                # Groq API aufrufen
+                completion = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=messages,
+                    temperature=0.7,
+                    max_completion_tokens=1024,
+                    top_p=1,
+                    stream=False
+                )
+            except AuthenticationError as auth_error:
+                return jsonify({"error": "Unauthorized API key", "details": str(auth_error)}), 401
+            
+            response = completion.choices[0].message.content
+            print("Antwort von Groq API erhalten:", response)  # Debug-Ausgabe
+            
+            # Chat-Historie speichern in der Session
+            chat_entry = {
+                "user": user_message,
+                "bot": response
+            }
+
+            # Wenn noch keine Historie existiert, neue Liste starten
+            if "chat_history" not in session:
+                session["chat_history"] = []
+
+            session["chat_history"].append(chat_entry)
+            session.modified = True  # Wichtig, damit Flask die Session wirklich speichert
+            # print("Chat-Historie gespeichert:", session.get("chat_history")) #Debug Assitent um zu Testen ob Historie gespeichert
+
+
+            return jsonify({
+                "response": response
+            })
+        
+        except Exception as e:
+            print("Fehler aufgetreten:", str(e))  # Debug-Ausgabe
+            print("Fehlertyp:", type(e).__name__)  # Debug-Ausgabe
+            return jsonify({
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "details": "Bitte überprüfen Sie die Server-Logs für mehr Details."
+            }), 500
+    else:
+        return jsonify({"response": "This service is currently not available - no api-key provided."}), 401
+
+@app.route("/chat_history", methods=["GET"])
+def get_chat_history():
+    chat_history = session.get("chat_history", [])
+    return jsonify(chat_history)
+
 @app.route("/load_game", methods=["POST"])
 def load_game():
     game_id = request.form.get("game_id")
@@ -240,16 +329,15 @@ def load_game():
         gameRef.players[0].total_score = game_data["score_player_A"]
         gameRef.players[1].total_score = game_data["score_player_B"]
         
-        ### ---> add the correct data from MARIADB HERE
-        name_a  = game_data["player_A"]
-        name_b  = game_data["player_B"]
+        playerA_Name  = game_data["player_A"]
+        playerB_Name  = game_data["player_B"]
         game_mode = game_data["game_mode"]
-        return jsonify({"namePlayerA": name_a,
-                        "namePlayerB": name_b,
+        return jsonify({"namePlayerA": playerA_Name,
+                        "namePlayerB": playerB_Name,
                         "scorePlayerA": game_data["score_player_A"],
                         "scorePlayerB": game_data["score_player_B"],
                         "gamemode": game_mode, 
-                        "redirect_url": f'/game/{name_a}/{name_b}/{game_mode}/1'})
+                        "redirect_url": f'/game/{playerA_Name}/{playerB_Name}/{game_mode}/1'})
         # return redirect(f'/game/{game_data["player_A"]}/{game_data["player_B"]}/{game_data["game_mode"]}/1') 
         #statt redirect 4 elemente aus db ls json zurückgeben!!! weiterverarbeitet im js
 
