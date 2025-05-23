@@ -12,6 +12,7 @@ dependencies = [
     "groq>=0.4.0",
     "selenium>=4.30.0",
     "mysql-connector-python>=9.2.0",
+    "chromedriver-autoinstaller>=0.6.4",
 ]
 
 # add these lines because otherwise, uv will treat our flask files as libraries and throw an error
