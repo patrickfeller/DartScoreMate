@@ -9,7 +9,8 @@
     - [Advanced Features](#advanced-features)
   - [Current Status](#current-status)
   - [Grading](#grading)
-  - [Current estimated points are marked in 🔵 blue.](#current-estimated-points-are-marked-in--blue)
+    - [Current estimated points are marked in 🔵 blue.](#current-estimated-points-are-marked-in--blue)
+  - [Authors and acknowledgment](#authors-and-acknowledgment)
   - [Links](#links)
 - [Project status](#project-status)
 - [🌳 Branches and Commits](#-branches-and-commits)
@@ -31,7 +32,7 @@
 
 ## 🔍 About the Project
 DartScoreMate is a web-based application for tracking and enhancing dart games in real-time.  
-It uses camera-based score detection and provides AI-powered recommendations for better play.
+It uses camera-based score detection and provides recommendations for better play.
 
 
 ## ✨ Features
@@ -39,11 +40,10 @@ It uses camera-based score detection and provides AI-powered recommendations for
   <summary>✨ Click to expand</summary>
   
   ## Features
-  - Create Users 
-  - Track Score 
+  - Track Score, handle dart-game-logic 
   - Save/Load Games (SQL) 
   - Chatbot Integration 
-  - Live-View of Dart Board (static)  
+  - Live-View of Dart Board (static) 
 
   ### Advanced Features  
   - Detect Score from Image 
@@ -52,28 +52,28 @@ It uses camera-based score detection and provides AI-powered recommendations for
 </details>
 
 ## Current Status
-- ✅ **Flask + HTML/CSS/JS Frontend:** Landing page, main game screen, board status view, undo button, save-game button, winning animations, and more  
+- ✅ **Flask + HTML/CSS/JS Frontend:** Landing page, main game screen, board status view, undo button, save-game button, winning animations, handling of legs, and more  
 - ✅ **Streamlit Camera App:** Live camera capture and captioning tool  
 - ✅ **Automated Tests:** Unit & integration tests in GitLab CI  
 - ✅ **Docker Support:** One‑command launch via Docker Compose, includes camera passthrough  
 - ✅ **Chatbot Integration:** Groq‑powered recommendation bot  
-- ✅ **Scoring Recommendations:** AI‑driven score suggestions  
+- ✅ **Scoring Recommendations:** score suggestions  
 - ✅ **OOP & Design Patterns:** Modular, maintainable code architecture  
 - ⏳ **Save/Load Games:** Game saving complete; load functionality in progress  
-- ⏳ Presentation for May
-- ⏳ **Image‑Based Score Prediction:** ML model for predicting scores from photos  
+- ✅ **Presentation** for May
+- ✅ **Image‑Based Score Prediction:** mathematical model for predicting scores from photos  
 
 ## Grading 
 <details>
   <summary>Click to expand</summary>
 
-  ## Current estimated points are marked in 🔵 blue.
+  ### Current estimated points are marked in 🔵 blue.
   - OOP & Framework (50) 🔵45
   - Unittests (5) 🔵5
-  - Requirements / Docker (10) 9
-  - Documentation (10) 🔵7
+  - Requirements / Docker (10) 🔵9
+  - Documentation (10) 🔵9
   - Gitlab (10) 🔵10
-  - Presentation (15) 🔵12
+  - Presentation (15) 🔵15
 
   ❌ no hand-in with just one file  
   ❌ meaningless commit-messages: use standard words (FIX, FEAT, DOCS,...) and effective description  
@@ -86,10 +86,10 @@ It uses camera-based score detection and provides AI-powered recommendations for
 ## Authors and acknowledgment
 **Patrick Feller**
 
-✅make first flask environment 
+make first flask environment and general game-logic 
 
 **Chris Lehmann**
-Unit tests 
+image-based score detection (harder then expected)
 
 
 
@@ -103,7 +103,7 @@ CSS
 
 
 **Daniel Hillebrand**
-Project Management | Docker | Gitlab | Model Training
+Project Management, Docker, Gitlab, Unittests
 </details>
 
 ## Links
@@ -308,7 +308,7 @@ macOS does not allow Docker containers direct access to USB cameras due to virtu
 
 ## 👥 Contributors
 - Patrick Feller – Flask Setup, OOP, Design Patterns, Streamlit App, 3D-Prints  
-- Chris Lehmann – Score Prediction (ML), Unit Tests, GitLab
+- Chris Lehmann – Score Prediction, Unit Tests, GitLab
 - Kathrin Lindauer – SQL, README, Chat History for Chatbot
 - Ana Orkić – CSS, Winning Animation, Chatbot, Meeting Records, Presentation  
 - Daniel Hillebrand – PM, Docker, GitLab, Tests, Support 
@@ -329,5 +329,5 @@ macOS does not allow Docker containers direct access to USB cameras due to virtu
 - 2025-03-31 - Development
 - 2025-04-14 - V1-Launch, Review
 - 2025-04-28 - KVPs
+- 2025-05-12 - presentation review, final remarks
 
-next (and final) meeting 📅: **2025-05-12 6pm**
