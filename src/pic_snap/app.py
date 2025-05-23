@@ -3,13 +3,22 @@ import cv2
 import os
 from pathlib import Path
 import time
+import platform
+
+# Function to get the backend based on the platform
+def get_camera_backend():
+    if platform.system() == 'Windows':
+        return cv2.CAP_DSHOW  # Use DirectShow backend on Windows
+    else:
+        return cv2.CAP_V4L2
 
 def get_available_cameras():
     """Get a list of available camera indices."""
     if 'available_cameras' not in st.session_state:
         available_cameras = []
         for i in range(6):  # Check first 6 indices
-            cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)  # Use DirectShow backend
+            backend = get_camera_backend()  # Get the correct backend for the platform
+            cap = cv2.VideoCapture(i, backend)  # Use DirectShow backend
             if cap.isOpened():
                 available_cameras.append(i)
                 cap.release()
@@ -59,9 +68,10 @@ def get_camera_instance(camera_id, camera_name, resolution):
     if camera_name in st.session_state.error_counts and st.session_state.error_counts[camera_name] > 5:
         release_camera(camera_name)
         st.warning(f"Camera {camera_name} was reset due to errors. Please refresh the page if issues persist.")
-    
+
     if camera_name not in st.session_state.camera_instances:
-        cap = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)  # Use DirectShow backend
+        backend = get_camera_backend()  # Get the correct backend for the platform
+        cap = cv2.VideoCapture(camera_id, backend)  # Use DirectShow backend
         if cap.isOpened():
             # Set resolution
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
@@ -72,11 +82,12 @@ def get_camera_instance(camera_id, camera_name, resolution):
             st.session_state.error_counts[camera_name] = 0
     return st.session_state.camera_instances.get(camera_name)
 
+
 def update_camera_frame(camera_name, cap):
     """Update frame for a specific camera with frame rate control and error handling."""
     current_time = time.time()
     last_update = st.session_state.last_update.get(camera_name, 0)
-    
+
     # Check if enough time has passed since last update
     if current_time - last_update >= st.session_state.frame_interval:
         if cap is not None and cap.isOpened():
@@ -98,18 +109,21 @@ def update_camera_frame(camera_name, cap):
                     return None
     return st.session_state.current_frames.get(camera_name)
 
+
+# Camera initialization and other methods...
+
 def main():
     st.title("Multi-Camera Capture System")
-    
+
     # Initialize session state
     initialize_session_state()
-    
+
     # Get available cameras (cached)
     available_cameras = get_available_cameras()
-    
+
     # Settings sidebar
     st.sidebar.header("Settings")
-    
+
     # Save path selection
     new_save_path = st.sidebar.text_input("Save Path", value=st.session_state.save_path)
     if new_save_path != st.session_state.save_path:
@@ -145,14 +159,14 @@ def main():
 
     # Camera selection for each feed
     col1, col2, col3 = st.columns(3)
-    
+
     # Camera A
     with col1:
         st.header("Camera A")
-        camera_a = st.selectbox("Select Camera A", 
-                              options=available_cameras,
-                              key="camera_a",
-                              index=1 if len(available_cameras) > 1 else 0)
+        camera_a = st.selectbox("Select Camera A",
+                                options=available_cameras,
+                                key="camera_a",
+                                index=1 if len(available_cameras) > 1 else 0)
         cap_a = get_camera_instance(camera_a, 'A', resolution)
         frame_a = update_camera_frame('A', cap_a)
         if frame_a is not None:
@@ -161,10 +175,10 @@ def main():
     # Camera B
     with col2:
         st.header("Camera B")
-        camera_b = st.selectbox("Select Camera B", 
-                              options=available_cameras,
-                              key="camera_b",
-                              index=2 if len(available_cameras) > 2 else 0)
+        camera_b = st.selectbox("Select Camera B",
+                                options=available_cameras,
+                                key="camera_b",
+                                index=2 if len(available_cameras) > 2 else 0)
         cap_b = get_camera_instance(camera_b, 'B', resolution)
         frame_b = update_camera_frame('B', cap_b)
         if frame_b is not None:
@@ -173,23 +187,23 @@ def main():
     # Camera C
     with col3:
         st.header("Camera C")
-        camera_c = st.selectbox("Select Camera C", 
-                              options=available_cameras,
-                              key="camera_c",
-                              index=3 if len(available_cameras) > 3 else 0)
+        camera_c = st.selectbox("Select Camera C",
+                                options=available_cameras,
+                                key="camera_c",
+                                index=3 if len(available_cameras) > 3 else 0)
         cap_c = get_camera_instance(camera_c, 'C', resolution)
         frame_c = update_camera_frame('C', cap_c)
         if frame_c is not None:
             st.image(frame_c, channels="BGR", use_container_width=True)
-    
+
     # Input field for folder name
     folder_name = st.text_input("Enter folder name for image capture", key="folder_name")
-    
+
     if st.button("Capture Images") and folder_name:
         # Create folder if it doesn't exist
         folder_path = os.path.join(st.session_state.save_path, folder_name)
         os.makedirs(folder_path, exist_ok=True)
-        
+
         # Save current frames from all cameras
         for camera_name, frame in st.session_state.current_frames.items():
             if frame is not None:
@@ -208,6 +222,6 @@ def main():
             release_camera(camera_name)
         st.rerun()
 
+
 if __name__ == "__main__":
     main()
-

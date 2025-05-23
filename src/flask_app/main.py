@@ -1,33 +1,32 @@
 # -*- coding: utf-8 -*-
-import os
-import cv2
 from flask import Flask, render_template, request, redirect, jsonify, Response, session
+from . import gamedata
+from . import camera_handling
+import cv2 
 from flask_session import Session
 from dotenv import load_dotenv
 from mysql.connector.errors import Error
+from . import aid_functions_sql 
+from . import recommender
+import random
+import platform
 from groq import Groq
-
-import gamedata
-import camera_handling
-import aid_functions_sql
-import recommender
+import os
 
 # Load environment variables
 load_dotenv()
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', "")
 client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# Initialize game references
+# Shared thread references, currently not clear why needed
 adminRef = gamedata.Admin()
 gameRef = gamedata.Game()
 
 # Flask setup
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
-app.config.update(
-    SESSION_TYPE="filesystem",
-    SESSION_PERMANENT=False,
-)
+app.secret_key = "supersecretkey"  # Kann auch aus .env kommen
+app.config["SESSION_TYPE"] = "filesystem"  # Damit wird die Session serverseitig gespeichert
+app.config["SESSION_PERMANENT"] = False
 Session(app)
 
 # ------------------------- ROUTES -------------------------
@@ -52,7 +51,11 @@ def video_feed():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def generate_frames(camera_id):
-    camera = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
+    system = platform.system()
+    if system == "Linux":
+        camera = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
+    else:
+        camera = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
     try:
         while True:
             success, frame = camera.read()
@@ -77,26 +80,74 @@ def new_game():
 @app.route('/game/<playerA>/<playerB>/<format>/<first_to>')
 def game(playerA, playerB, format, first_to):
     scores = gameRef.get_totals()
-    return render_template('game.html', playerA=playerA, playerB=playerB, format=int(format),
-                           scoreA=scores[0], scoreB=scores[1])
+    first_to = int(first_to)
+    current_player = gameRef.current_leg.player_index
+    wins_players = [player.wins for player in gameRef.players]
+    return render_template('game.html',
+                           playerA=playerA,
+                           playerB=playerB,
+                           format=format,
+                           scoreA=scores[0],
+                           scoreB=scores[1],
+                           wins_playerA = wins_players[0],
+                           wins_playerB = wins_players[1],
+                           first_to=first_to,
+                           current_player=current_player)
 
+# Route for a new game round / new leg
+@app.route('/new_leg', methods=["POST"])
+def new_leg():
+    # Check if game is active
+    if gameRef.playing:
+        # Check if game is not over
+        if not gameRef.is_game_over():
+            # get current Game state
+            playerA, playerB = [player.name for player in gameRef.players]
+            format = gameRef.format
+            first_to = gameRef.first_to
+            # Start a new leg
+            return redirect('/game/'+playerA+'/'+playerB+'/'+str(format)+'/'+str(first_to))
+        # if game is over, redirect to start page
+        else:
+            return redirect('/play')
+    # if no game is active, redirect to start page
+    else:
+        return redirect('/play')
+
+
+# Route for handling throws
 @app.route("/throw")
 def handle_throw():
     throw_number = int(request.args.get('throwNumber', 1))
     base_score = int(request.args.get('score', 0))
     multiplier = int(request.args.get('multiplier', 1))
-
-    dart = gamedata.Dart(base_score, multiplier, None)
-    gameRef.dart(dart)
-
+    score_recommendation = 0 # equal to false in JS
+    # Create a dart object
+    dart = gamedata.Dart(base_score, multiplier, None)  # Position is None as we don't use camera
+    
+    # Try to make the throw
+    gameRef.dart(dart)    
+    
+    # Get updated game state
     scores = gameRef.get_totals()
+
     current_throws = gameRef.get_scores()
     active_player = gameRef.current_leg.player_index
-    recommendation = recommender.get_recommendation(scores[active_player]) if throw_number < 3 else 0
+    current_player_throws = current_throws[active_player]
+    
+    # give score recommendations:
+    if throw_number < 3:
+        double_out_recommendation = recommender.get_recommendation(scores[active_player])
+        if double_out_recommendation and len(double_out_recommendation)<=3-throw_number:
+            score_recommendation = recommender.get_recommendation(scores[active_player])
 
-    just_won, winner_index = gameRef.has_just_won()
+    # Check if player has won, the leg and / or the game
+    just_won, winner_index, playing= gameRef.has_just_won()
+    game_over = gameRef.is_game_over()
+
+    # Prepare display score
     display_score = f"{multiplier}x{base_score}" if multiplier > 1 else str(base_score)
-
+    
     return jsonify({
         "received": base_score,
         "multiplier": multiplier,
@@ -107,8 +158,10 @@ def handle_throw():
         "isRoundComplete": gameRef.current_leg.change,
         "isBust": gameRef.is_bust,
         "justWon": just_won,
+        "GameOver": game_over,
         "winnerIndex": winner_index if just_won else -1,
-        "scoreRecommendation": recommendation
+        "scoreRecommendation": score_recommendation,
+        "currentPlayer": gameRef.current_leg.player_index
     })
 
 @app.route("/undo_throw", methods=["POST"])
@@ -178,7 +231,7 @@ def load_game():
     try:
         cursor.execute("SELECT * FROM game WHERE game_id = %s", (game_id,))
         game_data = cursor.fetchone()
-
+        
         if not game_data:
             print(f"Kein Spiel mit ID {game_id} gefunden.")
             return jsonify({"error": f"Kein Spiel mit ID {game_id} gefunden."}), 404 # status 404 = nicht gefunden
@@ -216,68 +269,29 @@ def return_to_game():
             return redirect(f'/game/{gameRef.players[0].name}/{gameRef.players[1].name}/{gameRef.format}/{gameRef.first_to}')
     return redirect('/play')
 
-@app.route("/get_score_recommendation", methods=["POST"])
-def get_score_recommendation():
-    data = request.get_json()
-    current_score = data.get('score')
-
-    if current_score is None:
-        return jsonify({'scoreRecommendation': 0}), 400
-
-    return jsonify({'scoreRecommendation': recommender.get_recommendation(current_score)})
-
-@app.route("/chat", methods=["POST"])
-def chat():
-    if not client:
-        return jsonify({"response": "Chat-Service aktuell nicht verfügbar (kein API-Key)."})
-
-    user_message = request.json.get("message", "")
-    if not user_message:
-        return jsonify({"error": "Keine Nachricht empfangen"}), 400
-
-    prompt = (
-        "Du bist Mrs. Darts, ein Experte im Dartspielen. Beantworte Fragen zu Regeln, Technik, Ausrüstung usw."
-    )
-
-    messages = [{"role": "system", "content": prompt}]
-    for entry in session.get("chat_history", []):
-        messages.extend([
-            {"role": "user", "content": entry["user"]},
-            {"role": "assistant", "content": entry["bot"]}
-        ])
-    messages.append({"role": "user", "content": user_message})
-
-    try:
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=messages,
-            temperature=0.7,
-            max_completion_tokens=1024,
-            top_p=1,
-            stream=False
-        )
-        response = completion.choices[0].message.content
-        session.setdefault("chat_history", []).append({"user": user_message, "bot": response})
-        session.modified = True
-        return jsonify({"response": response})
-
-    except Exception as e:
-        return jsonify({
-            "error": str(e),
-            "error_type": type(e).__name__,
-            "details": "Bitte Server-Logs prüfen."
-        }), 500
-
-@app.route("/chat_history", methods=["GET"])
-def get_chat_history():
-    return jsonify(session.get("chat_history", []))
-
 @app.route("/reset_chat", methods=["POST"])
 def reset_chat():
     session.pop("chat_history", None)
     return jsonify({"status": "ok"})
 
-# ------------------------- APP START -------------------------
+@app.route("/get_score_prediction", methods = ["GET"])
+def get_score_prediction():
+    def random_dart_score():
+        # Choose a base score from 0, 1–20, or 25
+        score = random.choice([0] + list(range(1, 21)) + [25])
+        
+        # Determine allowed multiplier based on score
+        if score == 0:
+            multiplier = 1
+        elif score == 25:
+            multiplier = random.choice([1, 2])
+        else:
+            multiplier = random.choice([1, 2, 3])
+        
+        # Return JSON-serializable result
+        return score, multiplier
+    score_prediction = random_dart_score()
+    return jsonify({"score": score_prediction[0], "multiplier": score_prediction[1]})
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

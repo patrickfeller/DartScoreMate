@@ -6,11 +6,14 @@
     <div class="player-box">
         <h3>Player A</h3>
         <p><span id="playerA_name">{{ playerA }}</span>: <span id="playerA_score">{{ scoreA }}</span></p>
+        <p><span id="wins_playerA">{{  wins_playerA  }} wins of {{  first_to  }}</span></p>
     </div>
     <div class="player-box">
         <h3>Player B</h3>
         <p><span id="playerB_name">{{ playerB }}</span>: <span id="playerB_score">{{ scoreB }}</span></p>
+        <p><span id="wins_playerB">{{  wins_playerB  }} wins of {{  first_to  }}</span></p>
     </div>
+<div data-current-player="{{ current_player }}"></div>
 </div>
 
 <div class="throws">     
@@ -25,7 +28,8 @@
     <button onclick="toggleView()">Switch to Picture</button>
     <button onclick="selectField('Undo')">Undo⏪</button>
     <button onclick="selectField('SaveGame')">Save💾</button>
-
+    <button onclick="selectField('Predict')">Predict Score ✨</button>
+    <!-- insert if needed: button onclick="selectField('Next')" id="nextButton" >Next⏩</button -->
     <div id="button-view">
         <div>
             <button id="double" onclick="selectField('Double', this)">Double</button>
