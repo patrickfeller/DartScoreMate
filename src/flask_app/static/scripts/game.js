@@ -372,6 +372,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ✅ Clear it so it doesn't persist across reloads
         sessionStorage.removeItem("loadedGameData");
-    updatePlayerTurn();
     }
+    updatePlayerTurn();
 });

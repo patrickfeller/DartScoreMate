@@ -79,6 +79,7 @@ def new_game():
 
 @app.route('/game/<playerA>/<playerB>/<format>/<first_to>')
 def game(playerA, playerB, format, first_to):
+    format = int(format)
     scores = gameRef.get_totals()
     first_to = int(first_to)
     current_player = gameRef.current_leg.player_index
