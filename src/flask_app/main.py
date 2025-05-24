@@ -183,7 +183,7 @@ def save_game():
     playerA, playerB = [p.name for p in gameRef.players]
     game_mode = gameRef.format
     legs_played = len(gameRef.legs_played)
-    active_player = gameRef.current_leg.current_player()
+    active_player = gameRef.current_leg.current_player.name
     current_throws = gameRef.get_scores()
     conn = aid_functions_sql.get_db_connection()
     cursor = conn.cursor()
