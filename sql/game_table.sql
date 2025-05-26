@@ -10,6 +10,7 @@ CREATE OR REPLACE TABLE `game` (
 	`throw_2` VARCHAR(5) NOT NULL,
 	`throw_3` VARCHAR(5) NOT NULL,
 	`legs_played` TINYINT,
-	PRIMARY KEY(`game_id`),
+	`first_to` TINYINT,
+	PRIMARY KEY(`game_id`)
 );
 

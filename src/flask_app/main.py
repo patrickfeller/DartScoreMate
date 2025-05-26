@@ -188,10 +188,11 @@ def save_game():
         legs_played = len(getattr(gameRef, "legs_played", []))
         active_player = getattr(getattr(getattr(gameRef, "current_leg", None), "current_player", None), "name", None)
         throw_1, throw_2,throw_3 = gameRef.get_scores()
-        
+        first_to = getattr(gameRef, "first_to",1) 
+
         # Validate required (NOT NULL) fields
 
-        required_fields = [game_mode, scoreA, scoreB, throw_1, throw_2, throw_3]
+        required_fields = [game_mode, scoreA, scoreB, throw_1, throw_2, throw_3, first_to]
         if any(val is None for val in required_fields):
             return jsonify({"success": False, "error": "Missing required fields"}), 400
 
@@ -214,13 +215,14 @@ def save_game():
                     throw_1 = %s,
                     throw_2 = %s,
                     throw_3 = %s,
-                    legs_played = %s
+                    legs_played = %s,
+                    first_to = %s,
                 WHERE game_id = %s
             """, (
                 game_mode, playerA, playerB,
                 scoreA, scoreB, active_player,
                 throw_1, throw_2, throw_3,
-                legs_played, loaded_game_id
+                legs_played, loaded_game_id, first_to
             ))
             print(f"Aktualisiertes Spiel-ID: {loaded_game_id}")
         else:
@@ -229,13 +231,13 @@ def save_game():
                 INSERT INTO game (
                     game_mode, player_A, player_B,
                     score_player_A, score_player_B,
-                    active_player, throw_1, throw_2, throw_3, legs_played
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    active_player, throw_1, throw_2, throw_3, legs_played, first_to
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 game_mode, playerA, playerB,
                 scoreA, scoreB, active_player,
                 throw_1, throw_2, throw_3,
-                legs_played
+                legs_played, first_to
             ))
             new_game_id = cursor.lastrowid
             print("Neues Spiel gespeichert")
@@ -363,7 +365,7 @@ def load_game():
         gameRef.start_game(1, game_data["game_mode"], game_data["player_A"], game_data["player_B"])
         gameRef.players[0].total_score = game_data["score_player_A"]
         gameRef.players[1].total_score = game_data["score_player_B"]
-        
+        gameRef.legs_played = game_data["legs_played"]
         playerA_Name  = game_data["player_A"]
         playerB_Name  = game_data["player_B"]
         game_mode = game_data["game_mode"]
