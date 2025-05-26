@@ -179,48 +179,80 @@ def undo_throw():
 
 @app.route("/save_game", methods=["POST"])
 def save_game():
-    scoreA, scoreB = gameRef.get_totals()
-    playerA, playerB = [p.name for p in gameRef.players]
-    game_mode = gameRef.format
-    legs_played = len(gameRef.legs_played)
-    active_player = gameRef.current_leg.current_player.name
-    current_throws = gameRef.get_scores()
-    conn = aid_functions_sql.get_db_connection()
-    cursor = conn.cursor()
-
     try:
+        # extract game values safely and store them in mariadb
+        scoreA, scoreB = gameRef.get_totals()
+        player_names = [p.name for p in getattr(gameRef,"players", [])]
+        playerA, playerB = (player_names + [None, None])[:2]
+        game_mode = getattr(gameRef,"format", 501)
+        legs_played = len(getattr(gameRef, "legs_played", []))
+        active_player = getattr(getattr(getattr(gameRef, "current_leg", None), "current_player", None), "name", None)
+        throw_1, throw_2,throw_3 = gameRef.get_scores()
+        
+        # Validate required (NOT NULL) fields
+
+        required_fields = [game_mode, scoreA, scoreB, throw_1, throw_2, throw_3]
+        if any(val is None for val in required_fields):
+            return jsonify({"success": False, "error": "Missing required fields"}), 400
+
+        
+        conn = aid_functions_sql.get_db_connection()
+        cursor = conn.cursor()
+
         loaded_game_id = session.get("loaded_game_id")
 
         if loaded_game_id:
-            # Update vorhandenes Spiel
+            # Update existing game
             cursor.execute("""
                 UPDATE game
                 SET game_mode = %s,
                     player_A = %s,
                     player_B = %s,
                     score_player_A = %s,
-                    score_player_B = %s
+                    score_player_B = %s,
+                    active_player = %s,
+                    throw_1 = %s,
+                    throw_2 = %s,
+                    throw_3 = %s,
+                    legs_played = %s
                 WHERE game_id = %s
-            """, (game_mode, playerA, playerB, scoreA, scoreB, loaded_game_id))
+            """, (
+                game_mode, playerA, playerB,
+                scoreA, scoreB, active_player,
+                throw_1, throw_2, throw_3,
+                legs_played, loaded_game_id
+            ))
             print(f"Aktualisiertes Spiel-ID: {loaded_game_id}")
         else:
-            # Neues Spiel speichern
+            # Insert new game
             cursor.execute("""
-                INSERT INTO game (game_mode, player_A, player_B, score_player_A, score_player_B)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (game_mode, playerA, playerB, scoreA, scoreB))
+                INSERT INTO game (
+                    game_mode, player_A, player_B,
+                    score_player_A, score_player_B,
+                    active_player, throw_1, throw_2, throw_3, legs_played
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                game_mode, playerA, playerB,
+                scoreA, scoreB, active_player,
+                throw_1, throw_2, throw_3,
+                legs_played
+            ))
+            new_game_id = cursor.lastrowid
             print("Neues Spiel gespeichert")
 
         conn.commit()
-        return jsonify({"success": True})
+        return jsonify({"success": True, "game_id": new_game_id})
 
-    except Error as e:
+    except Exception as e:
         print(f"Fehler beim Speichern: {str(e)}")
-        return jsonify({"success": False})
+        return jsonify({"success": False, "error": str(e)}), 500
 
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor: cursor.close()
+            if conn and conn.is_connected(): conn.close()
+        except:
+            pass
 
 @app.route("/chat", methods=["POST"])
 def chat():

@@ -287,7 +287,7 @@ function selectField(type, button) {
         .then(data => {
             console.log("Data Save:", data);
             if (data.success) {
-                alert('Game saved successfully!');
+                alert(`Game saved successfully! Game ID: ${data.game_id}`);
             } else {
                 console.error(data.error);
             }
