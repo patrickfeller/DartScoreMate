@@ -255,6 +255,7 @@ def save_game():
             pass
 
 @app.route("/chat", methods=["POST"])
+# a route to chat with an llm
 def chat():
     api_key = os.getenv("GROQ_API_KEY", "")
     if api_key:
@@ -342,16 +343,17 @@ def get_chat_history():
     return jsonify(chat_history)
 
 @app.route("/load_game", methods=["POST"])
+# load a previous game from MariaDB by ID
 def load_game():
     game_id = request.form.get("game_id")
     if not game_id:
-        return redirect("/play")
+        return jsonify({"error": "No Game-ID provided"}), 400
 
     conn = aid_functions_sql.get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
-        cursor.execute("SELECT * FROM game WHERE game_id = %s", (game_id,))
+        cursor.execute("SELECT * FROM game WHERE game_id = %s", (game_id,)) # get all the information linked to the gameID
         game_data = cursor.fetchone()
         
         if not game_data:
