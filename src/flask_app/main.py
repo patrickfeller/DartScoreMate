@@ -12,6 +12,7 @@ import random
 import platform
 from groq import Groq
 import os
+import ast
 
 # Load environment variables
 load_dotenv()
@@ -189,7 +190,7 @@ def save_game():
         active_player = getattr(getattr(getattr(gameRef, "current_leg", None), "current_player", None), "name", None)
         throw_1, throw_2,throw_3 = gameRef.get_scores()
         first_to = getattr(gameRef, "first_to",1) 
-
+        wins_playerA, wins_playerB = [p.wins for p in getattr(gameRef, "players", [0,0])]
         # Validate required (NOT NULL) fields
 
         required_fields = [game_mode, scoreA, scoreB, throw_1, throw_2, throw_3, first_to]
@@ -217,6 +218,8 @@ def save_game():
                     throw_3 = %s,
                     legs_played = %s,
                     first_to = %s,
+                    wins_playerA = %s,
+                    wins_playerB = %s,
                 WHERE game_id = %s
             """, (
                 game_mode, playerA, playerB,
@@ -231,13 +234,14 @@ def save_game():
                 INSERT INTO game (
                     game_mode, player_A, player_B,
                     score_player_A, score_player_B,
-                    active_player, throw_1, throw_2, throw_3, legs_played, first_to
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    active_player, throw_1, throw_2, throw_3, legs_played, first_to,
+                    wins_playerA, wins_playerB
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 game_mode, playerA, playerB,
                 scoreA, scoreB, active_player,
                 throw_1, throw_2, throw_3,
-                legs_played, first_to
+                legs_played, first_to, wins_playerA, wins_playerB
             ))
             new_game_id = cursor.lastrowid
             print("Neues Spiel gespeichert")
@@ -362,10 +366,28 @@ def load_game():
             print(f"Kein Spiel mit ID {game_id} gefunden.")
             return jsonify({"error": f"Kein Spiel mit ID {game_id} gefunden."}), 404 # status 404 = nicht gefunden
         session["loaded_game_id"] = game_id  # Spiel-ID merken
-        gameRef.start_game(1, game_data["game_mode"], game_data["player_A"], game_data["player_B"])
-        gameRef.players[0].total_score = game_data["score_player_A"]
-        gameRef.players[1].total_score = game_data["score_player_B"]
-        gameRef.legs_played = game_data["legs_played"]
+
+        ### Initialize Basic Game
+        first_to = game_data["first_to"]
+        gameRef.start_game(first_to, game_data["game_mode"], game_data["player_A"], game_data["player_B"])
+        gameRef.players[0].score = game_data["score_player_A"]
+        gameRef.players[1].score = game_data["score_player_B"]
+        gameRef.players[0].wins = game_data["wins_playerA"]
+        gameRef.players[1].wins = game_data["wins_playerB"]
+        gameRef.current_leg.player_index = 0 if game_data["active_player"] == game_data["player_A"] else 1
+
+        ### Load Turn States
+
+        saved_throws = "['S4', 'D2']" # game_data["throw_1"]
+        saved_throws = ast.literal_eval(saved_throws)
+        multiplier_map = {'S': 1, 'D': 2, 'T': 3}
+        for throw in saved_throws:
+            multiplier = multiplier_map.get(throw[0], 1)  # Default to 1 if unknown
+            score = int(throw[1:])
+            dart = gamedata.Dart(score,multiplier,None)
+            gameRef.current_leg.current_turn.darts.append(dart)
+
+        # return json object for game.js including the correct redirect-uri
         playerA_Name  = game_data["player_A"]
         playerB_Name  = game_data["player_B"]
         game_mode = game_data["game_mode"]
@@ -374,10 +396,9 @@ def load_game():
                         "scorePlayerA": game_data["score_player_A"],
                         "scorePlayerB": game_data["score_player_B"],
                         "gamemode": game_mode, 
-                        "redirect_url": f'/game/{playerA_Name}/{playerB_Name}/{game_mode}/1'})
-        # return redirect(f'/game/{game_data["player_A"]}/{game_data["player_B"]}/{game_data["game_mode"]}/1') 
-        #statt redirect 4 elemente aus db ls json zurückgeben!!! weiterverarbeitet im js
-
+                        "lastThrows": saved_throws,
+                        "redirect_url": f'/game/{playerA_Name}/{playerB_Name}/{game_mode}/{first_to}'})
+    
     except Error as e:
         print(f"Fehler beim Laden des Spiels: {str(e)}")
         return redirect("/play")

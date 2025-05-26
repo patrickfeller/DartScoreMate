@@ -11,6 +11,8 @@ CREATE OR REPLACE TABLE `game` (
 	`throw_3` VARCHAR(5) NOT NULL,
 	`legs_played` TINYINT,
 	`first_to` TINYINT,
+	`wins_playerA` TINYINT,
+	`wins_playerB` TINYINT, 
 	PRIMARY KEY(`game_id`)
 );
 
