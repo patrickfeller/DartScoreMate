@@ -227,7 +227,12 @@ async function handleGameIdEnter(event) {
                 namePlayerA: data.namePlayerA,
                 namePlayerB: data.namePlayerB,
                 scorePlayerA: data.scorePlayerA,
-                scorePlayerB: data.scorePlayerB
+                scorePlayerB: data.scorePlayerB,
+                currentThrows: data.lastThrows || [],
+                scoreRecommendation: data.scoreRecommendation || [],
+                justWon: false,
+                GameOver: false,
+                winnerIndex: null
             }));
 
             // ➡️ Redirect
@@ -369,9 +374,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (playerBName) playerBName.textContent = data.namePlayerB;
         if (playerAScore) playerAScore.textContent = data.scorePlayerA;
         if (playerBScore) playerBScore.textContent = data.scorePlayerB;
-
+        if (Array.isArray(data.currentThrows)) {
+            currentThrow = data.currentThrows.filter(t => t && t !== "-").length;
+        }
+        updatePlayerTurn();
+        updateDisplay(data)
         // ✅ Clear it so it doesn't persist across reloads
         sessionStorage.removeItem("loadedGameData");
     }
-    updatePlayerTurn();
 });
