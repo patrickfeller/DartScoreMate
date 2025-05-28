@@ -1,6 +1,7 @@
 let currentThrow = 0; // 0 for no throws, 1-3 for current throw number
 let multiplier = 1; // 1 for single, 2 for double, 3 for triple
-let currentPlayer = parseInt(document.querySelector('[data-current-player]').dataset.currentPlayer); // 0 for Player A, 1 for Player B
+let currentPlayerElement = document.querySelector('[data-current-player]');
+let currentPlayer = currentPlayerElement ? parseInt(currentPlayerElement.dataset.currentPlayer) : 0; // 0 for Player A, 1 for Player B
 let isCountdownActive = false; // Track if countdown is active
 let action = '';
 let lastThrows = [];
@@ -24,7 +25,7 @@ function updatePlayerTurn() {
     const scoreElementId = currentPlayer === 0 ? "playerA_score" : "playerB_score";
     const scoreElement = document.getElementById(scoreElementId);
     const currentScore = parseInt(scoreElement.textContent, 10);
-    // Send the current score to the backend to fetch the score recommendation
+        // Send the current score to the backend to fetch the score recommendation
     fetch('/get_score_recommendation', {
         method: 'POST',
         headers: {
@@ -201,6 +202,51 @@ function showWinnerLegAnimation(winnerIndex) {
     }, 10000);
 }
 
+async function handleGameIdEnter(event) {
+    if (event.key === "Enter") {
+        const gameId = document.getElementById("gameIdInput").value.trim();
+        if (!gameId) return;
+
+        const formData = new FormData();
+        formData.append("game_id", gameId);
+
+        try {
+            const response = await fetch("/load_game", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.redirect_url) {
+                alert(data.error || "Kein Spiel gefunden.");
+                return;
+            }
+
+            // 🔐 Store data temporarily
+            sessionStorage.setItem("loadedGameData", JSON.stringify({
+                namePlayerA: data.namePlayerA,
+                namePlayerB: data.namePlayerB,
+                scorePlayerA: data.scorePlayerA,
+                scorePlayerB: data.scorePlayerB,
+                currentThrows: data.lastThrows || [],
+                scoreRecommendation: data.scoreRecommendation || [],
+                justWon: false,
+                GameOver: false,
+                winnerIndex: null
+            }));
+
+            // ➡️ Redirect
+            window.location.href = data.redirect_url;
+
+        } catch (err) {
+            alert("Fehler beim Laden des Spiels.");
+        }
+    }
+}
+
+
+
 function selectField(type, button) {
     if (type === 'Undo') {
         fetch('/undo_throw', {
@@ -247,7 +293,7 @@ function selectField(type, button) {
         .then(data => {
             console.log("Data Save:", data);
             if (data.success) {
-                alert('Game saved successfully!');
+                alert(`Game saved successfully! Game ID: ${data.game_id}`);
             } else {
                 console.error(data.error);
             }
@@ -316,5 +362,25 @@ function handleScore(score) {
 
 // Initialize the game
 document.addEventListener('DOMContentLoaded', function() {
+    const loadedData = sessionStorage.getItem("loadedGameData");
+    if (loadedData) {
+        const data = JSON.parse(loadedData);
+
+        const playerAName = document.getElementById("playerA_name");
+        const playerBName = document.getElementById("playerB_name");
+        const playerAScore = document.getElementById("playerA_score");
+        const playerBScore = document.getElementById("playerB_score");
+
+        if (playerAName) playerAName.textContent = data.namePlayerA;
+        if (playerBName) playerBName.textContent = data.namePlayerB;
+        if (playerAScore) playerAScore.textContent = data.scorePlayerA;
+        if (playerBScore) playerBScore.textContent = data.scorePlayerB;
+        if (Array.isArray(data.currentThrows)) {
+            currentThrow = data.currentThrows.filter(t => t && t !== "-").length;
+        }
+        updateDisplay(data)
+        // ✅ Clear it so it doesn't persist across reloads
+        sessionStorage.removeItem("loadedGameData");
+    }
     updatePlayerTurn();
 });

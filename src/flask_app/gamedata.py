@@ -364,7 +364,24 @@ class Game:
         self.update = True
         self.clear = False
         self.just_won = False
-        self.game_over = False
+        self.game_over = False 
+
+    def load_game(self, legs_played, current_throws, active_player, ):
+        for throw in current_throws:
+            if throw == "-":
+                dart = Dart(0,1,None)
+            else:
+                multiplier_map = {'S': 1, 'D': 2, 'T': 3}
+                multiplier = multiplier_map.get(throw[0], 1)  # Default to 1 if unknown
+                score = throw[1:]
+                if score=="Bull":
+                    score=25
+                else:
+                    score = int(score)
+                dart = Dart(score,multiplier,None)
+                self.current_leg.current_turn.dart(dart)
+                ## ---> need to update turns
+
 
     def get_game_history(self):
         """Return the history of all completed games.

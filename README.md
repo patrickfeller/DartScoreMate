@@ -28,7 +28,7 @@
     - [🍎 macOS](#-macos)
   - [👥 Contributors](#-contributors)
   - [🚦 Status \& Roadmap](#-status--roadmap)
-  - [🗓 Meeting History](#-meeting-history)
+  - [🗓 Meeting History](#-meeting-history) 
 
 ## 🔍 About the Project
 DartScoreMate is a web-based application for tracking and enhancing dart games in real-time.  

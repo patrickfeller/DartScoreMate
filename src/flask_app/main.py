@@ -1,58 +1,56 @@
 # -*- coding: utf-8 -*-
-
 from flask import Flask, render_template, request, redirect, jsonify, Response, session
 from . import gamedata
 from . import camera_handling
 import cv2 
-import os
-from dotenv import load_dotenv
-from groq import Groq, AuthenticationError
-from . import aid_functions_sql 
-from mysql.connector.errors import Error
-from . import recommender
 from flask_session import Session
+from dotenv import load_dotenv
+from mysql.connector.errors import Error
+from . import aid_functions_sql 
+from . import recommender
 import random
 import platform
+from groq import Groq
+import os
+import ast
 
-
-# load environment variables
+# Load environment variables
 load_dotenv()
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', "")
+client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 # Shared thread references, currently not clear why needed
 adminRef = gamedata.Admin()
 gameRef = gamedata.Game()
-lockRef = None
 
-# Add session storage for throws and multiplier
-current_throws = {1: 0, 2: 0, 3: 0}
-current_multiplier = 1
-
+# Flask setup
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Kann auch aus .env kommen
 app.config["SESSION_TYPE"] = "filesystem"  # Damit wird die Session serverseitig gespeichert
 app.config["SESSION_PERMANENT"] = False
 Session(app)
 
-Session(app)
-
+# ------------------------- ROUTES -------------------------
 
 @app.route("/")
 @app.route("/play")
 def play():
     return render_template("play.html")
 
-
-# Main page for the game
 @app.route("/board-status")
 def boardstatus():
     cam = camera_handling.camera()
-    available_cameras = cam.get_available_cameras()
-    # TODO: Camera settings are not yet implemented
-    resulution_options = cam.resulution_options
-    fps_options = cam.fps_options    
-    return render_template("board-status.html", avaiable_cameras = available_cameras, resulution_options = resulution_options, fps_options = fps_options)   
+    return render_template("board-status.html",
+                           avaiable_cameras=cam.get_available_cameras(),
+                           resulution_options=cam.resulution_options,
+                           fps_options=cam.fps_options)
 
-# Convert still camera frames to video
+@app.route("/video_feed")
+def video_feed():
+    camera_id = request.args.get('camera_id', default=0, type=int)
+    return Response(generate_frames(camera_id),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
 def generate_frames(camera_id):
     system = platform.system()
     if system == "Linux":
@@ -64,35 +62,22 @@ def generate_frames(camera_id):
             success, frame = camera.read()
             if not success:
                 break
-            else:
-                ret, buffer = cv2.imencode('.jpeg', frame)
-                frame = buffer.tobytes()
-                yield (b'--frame\r\n'
-                      b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            ret, buffer = cv2.imencode('.jpeg', frame)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
     finally:
-        camera.release() 
+        camera.release()
 
-# Routing for video feed
-@app.route('/video_feed')
-def video_feed():
-    camera_id = request.args.get('camera_id', default=0, type=int)
-    return Response(generate_frames(camera_id), 
-                   mimetype='multipart/x-mixed-replace; boundary=frame')
-
-# Route when Play-button get pressed
 @app.route("/new_game", methods=["POST"])
 def new_game():
     format = int(request.form['game-type'])
     first_to = int(request.form['legs'])
     playerA = request.form['player1name']
     playerB = request.form['player2name']
-    # -> transfer to MariaDB
-    # Initialize new game with player names and format
     gameRef.start_game(first_to, format, playerA, playerB)
-    return redirect('/game/'+playerA+'/'+playerB+'/'+str(format)+'/'+str(first_to))
+    session.pop("loaded_game_id", None)  # Entferne alte Spiel-ID, falls vorhanden
+    return redirect(f'/game/{playerA}/{playerB}/{format}/{first_to}')
 
-
-# Route bevore new_game starts
 @app.route('/game/<playerA>/<playerB>/<format>/<first_to>')
 def game(playerA, playerB, format, first_to):
     format = int(format)
@@ -130,6 +115,7 @@ def new_leg():
     # if no game is active, redirect to start page
     else:
         return redirect('/play')
+
 
 # Route for handling throws
 @app.route("/throw")
@@ -180,8 +166,6 @@ def handle_throw():
         "currentPlayer": gameRef.current_leg.player_index
     })
 
-
-# Route to undo the last dart throw, if possible
 @app.route("/undo_throw", methods=["POST"])
 def undo_throw():
     if gameRef.undo_last_dart():
@@ -191,15 +175,97 @@ def undo_throw():
             "currentThrows": gameRef.get_scores(),
             "scoreA": scores[0],
             "scoreB": scores[1],
-            })
+        })
     return jsonify({'success': False, 'error': 'No throws to undo'}), 400
 
-@app.route("/next")
-def next_player():
-    # TODO: Implement next functionality, if needed
-    return jsonify({"success": True})
+@app.route("/save_game", methods=["POST"])
+def save_game():
+    try:
+        # extract game values safely and store them in mariadb
+        scoreA, scoreB = gameRef.get_totals()
+        player_names = [p.name for p in getattr(gameRef,"players", [])]
+        playerA, playerB = (player_names + [None, None])[:2]
+        game_mode = getattr(gameRef,"format", 501)
+        legs_played = len(getattr(gameRef, "legs_played", []))
+        active_player = getattr(getattr(getattr(gameRef, "current_leg", None), "current_player", None), "name", None)
+        throw_1, throw_2,throw_3 = gameRef.get_scores()
+        first_to = getattr(gameRef, "first_to",1) 
+        wins_playerA, wins_playerB = [p.wins for p in getattr(gameRef, "players", [0,0])]
+        # Validate required (NOT NULL) fields
+
+        required_fields = [game_mode, scoreA, scoreB, throw_1, throw_2, throw_3, first_to]
+        if any(val is None for val in required_fields):
+            return jsonify({"success": False, "error": "Missing required fields"}), 400
+
+        
+        conn = aid_functions_sql.get_db_connection()
+        cursor = conn.cursor()
+
+        loaded_game_id = session.get("loaded_game_id")
+
+        if loaded_game_id:
+            # Update existing game
+            cursor.execute("""
+                UPDATE game
+                SET game_mode = %s,
+                    player_A = %s,
+                    player_B = %s,
+                    score_player_A = %s,
+                    score_player_B = %s,
+                    active_player = %s,
+                    throw_1 = %s,
+                    throw_2 = %s,
+                    throw_3 = %s,
+                    legs_played = %s,
+                    first_to = %s,
+                    wins_playerA = %s,
+                    wins_playerB = %s
+                WHERE game_id = %s
+            """, (
+                game_mode, playerA, playerB,
+                scoreA, scoreB, active_player,
+                throw_1, throw_2, throw_3,
+                legs_played, first_to, wins_playerA, wins_playerB, loaded_game_id
+            ))
+            print(f"Aktualisiertes Spiel-ID: {loaded_game_id}")
+
+        else:
+            # Insert new game
+            cursor.execute("""
+                INSERT INTO game (
+                    game_mode, player_A, player_B,
+                    score_player_A, score_player_B,
+                    active_player, throw_1, throw_2, throw_3, legs_played, first_to,
+                    wins_playerA, wins_playerB
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                game_mode, playerA, playerB,
+                scoreA, scoreB, active_player,
+                throw_1, throw_2, throw_3,
+                legs_played, first_to, wins_playerA, wins_playerB
+            ))
+            new_game_id = cursor.lastrowid
+            print("Neues Spiel gespeichert")
+
+        conn.commit()
+        if loaded_game_id:
+            return jsonify({"success": True, "game_id": loaded_game_id})
+        else:
+            return jsonify({"success": True, "game_id": new_game_id})
+
+    except Exception as e:
+        print(f"Fehler beim Speichern: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+    finally:
+        try:
+            if cursor: cursor.close()
+            if conn and conn.is_connected(): conn.close()
+        except:
+            pass
 
 @app.route("/chat", methods=["POST"])
+# a route to chat with an llm
 def chat():
     api_key = os.getenv("GROQ_API_KEY", "")
     if api_key:
@@ -286,63 +352,71 @@ def get_chat_history():
     chat_history = session.get("chat_history", [])
     return jsonify(chat_history)
 
-@app.route("/save_game", methods=["POST"])
-def save_game():
-    # list of scores for each player
-    score_player_A, score_player_B = gameRef.get_totals()
-    # list of players
-    player_A, player_B = [player.name for player in gameRef.players]
-    
-    # played gamemode eg. 501
-    game_mode = gameRef.format
-    
+@app.route("/load_game", methods=["POST"])
+# load a previous game from MariaDB by ID
+def load_game():
+    game_id = request.form.get("game_id")
+    if not game_id:
+        return jsonify({"error": "No Game-ID provided"}), 400
+
     conn = aid_functions_sql.get_db_connection()
-    cursor = conn.cursor()
-   
+    cursor = conn.cursor(dictionary=True)
+
     try:
-        cursor.execute("INSERT INTO game (game_mode, player_A, player_B, score_player_A, score_player_B) VALUES (%s, %s, %s, %s, %s)", (game_mode, player_A, player_B, score_player_A, score_player_B))
-        conn.commit()
+        cursor.execute("SELECT * FROM game WHERE game_id = %s", (game_id,)) # get all the information linked to the gameID
+        game_data = cursor.fetchone()
+        
+        if not game_data:
+            print(f"Kein Spiel mit ID {game_id} gefunden.")
+            return jsonify({"error": f"Kein Spiel mit ID {game_id} gefunden."}), 404 # status 404 = nicht gefunden
+        session["loaded_game_id"] = game_id  # Spiel-ID merken
+
+        ### Initialize Basic Game
+        first_to = game_data["first_to"]
+        gameRef.start_game(first_to, game_data["game_mode"], game_data["player_A"], game_data["player_B"])
+        gameRef.players[0].score = game_data["score_player_A"]
+        gameRef.players[1].score = game_data["score_player_B"]
+        gameRef.players[0].wins = game_data["wins_playerA"]
+        gameRef.players[1].wins = game_data["wins_playerB"]
+        gameRef.current_leg.player_index = 0 if game_data["active_player"] == game_data["player_A"] else 1
+
+        ### Load Turn States
+
+        saved_throws = "['S4', 'D2']" # game_data["throw_1"]
+        saved_throws = ast.literal_eval(saved_throws)
+        multiplier_map = {'S': 1, 'D': 2, 'T': 3}
+        for throw in saved_throws:
+            multiplier = multiplier_map.get(throw[0], 1)  # Default to 1 if unknown
+            score = int(throw[1:])
+            dart = gamedata.Dart(score,multiplier,None)
+            gameRef.current_leg.current_turn.darts.append(dart)
+
+        # return json object for game.js including the correct redirect-uri
+        playerA_Name  = game_data["player_A"]
+        playerB_Name  = game_data["player_B"]
+        game_mode = game_data["game_mode"]
+        return jsonify({"namePlayerA": playerA_Name,
+                        "namePlayerB": playerB_Name,
+                        "scorePlayerA": game_data["score_player_A"],
+                        "scorePlayerB": game_data["score_player_B"],
+                        "gamemode": game_mode, 
+                        "lastThrows": saved_throws,
+                        "redirect_url": f'/game/{playerA_Name}/{playerB_Name}/{game_mode}/{first_to}'})
     
     except Error as e:
-        print(f"An error occured, {str(e)}")
-        return jsonify({"sucess": False})
-    
+        print(f"Fehler beim Laden des Spiels: {str(e)}")
+        return redirect("/play")
+
     finally:
         cursor.close()
         conn.close()
 
-    return jsonify({"success": True})
-
-
-@app.route('/get_score_recommendation', methods=["POST"])
-def get_score_recommendation():
-    # Get the incoming data (the current score)
-    data = request.get_json()  # This will be the JSON sent from the frontend
-    current_score = data.get('score')
-
-    if current_score:
-        # Get the recommendations based on the current score
-        recommendations = recommender.get_recommendation(current_score)
-
-        # Return the recommendations as a JSON response
-        return jsonify({'scoreRecommendation': recommendations})
-    else:
-        # If no score is provided, return an empty array or error message
-        return jsonify({'scoreRecommendation': 0}), 400
-
-
 @app.route("/current-game")
 def return_to_game():
-    # Check if there's an active game
     if gameRef.playing:
         scores = gameRef.get_totals()
-        if scores != -1:  # Game exists
-            playerA = gameRef.players[0].name
-            playerB = gameRef.players[1].name
-            format = gameRef.format
-            first_to = gameRef.first_to
-            return redirect(f'/game/{playerA}/{playerB}/{format}/{first_to}')
-    # If no active game, redirect to new game page
+        if scores != -1:
+            return redirect(f'/game/{gameRef.players[0].name}/{gameRef.players[1].name}/{gameRef.format}/{gameRef.first_to}')
     return redirect('/play')
 
 @app.route("/reset_chat", methods=["POST"])
@@ -368,6 +442,23 @@ def get_score_prediction():
         return score, multiplier
     score_prediction = random_dart_score()
     return jsonify({"score": score_prediction[0], "multiplier": score_prediction[1]})
+
+@app.route('/get_score_recommendation', methods=["POST"])
+def get_score_recommendation():
+    # Get the incoming data (the current score)
+    data = request.get_json()  # This will be the JSON sent from the frontend
+    current_score = data.get('score')
+
+    if current_score:
+        # Get the recommendations based on the current score
+        recommendations = recommender.get_recommendation(current_score)
+
+        # Return the recommendations as a JSON response
+        return jsonify({'scoreRecommendation': recommendations})
+    else:
+        # If no score is provided, return an empty array or error message
+        return jsonify({'scoreRecommendation': 0}), 400
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

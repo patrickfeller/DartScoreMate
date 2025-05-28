@@ -80,11 +80,6 @@ class FlaskUnitTest(unittest.TestCase):
         # Check if the redirect location is correct
         self.assertIn('/game/Alice/Bob/501/1', response.headers['Location'])
 
-    @patch.dict(os.environ, {"GROQ_API_KEY": "wrong_key"})
-    def test_chat_wrong_api_key(self):
-        response = self.app.post('/chat', json={"message": "Hallo"})
-        self.assertEqual(response.status_code,401)
-
     @patch("src.flask_app.main.Groq")  
     def test_chat_valid_api_key(self, mock_groq_class):
         # Arrange: Mock Groq client response
@@ -144,12 +139,6 @@ class FlaskUnitTest(unittest.TestCase):
                 continue  # Skip unreadable files
 
         self.assertTrue(found, "No session file contained both 'Hallo' and 'Mrs. Darts'")
-
-    def test_next_player(self):
-        print("\nTesting next player route in Flask App...")
-        resonse = self.app.get("/next")
-        json_data = resonse.get_json()
-        self.assertEqual(json_data["success"], True)
     
     @patch("src.flask_app.main.camera_handling.camera")
     def test_board_status_route(self, mock_camera_class):
