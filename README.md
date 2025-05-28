@@ -57,9 +57,9 @@ It uses camera-based score detection and provides recommendations for better pla
 - ✅ **Automated Tests:** Unit & integration tests in GitLab CI  
 - ✅ **Docker Support:** One‑command launch via Docker Compose, includes camera passthrough  
 - ✅ **Chatbot Integration:** Groq‑powered recommendation bot  
-- ✅ **Scoring Recommendations:** score suggestions  
+- ⚠️ **Scoring Recommendations:** score suggestions  
 - ✅ **OOP & Design Patterns:** Modular, maintainable code architecture  
-- ⏳ **Save/Load Games:** Game saving complete; load functionality in progress  
+- ✅ **Save/Load Games:** Game saving complete; load functionality in progress  
 - ✅ **Presentation** for May
 - ✅ **Image‑Based Score Prediction:** mathematical model for predicting scores from photos  
 
@@ -103,7 +103,7 @@ CSS
 
 
 **Daniel Hillebrand**
-Project Management, Docker, Gitlab, Unittests
+Project Management, Docker, Gitlab, Unittests, SQL
 </details>
 
 ## Links
