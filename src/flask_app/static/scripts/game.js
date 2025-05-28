@@ -1,6 +1,7 @@
 let currentThrow = 0; // 0 for no throws, 1-3 for current throw number
 let multiplier = 1; // 1 for single, 2 for double, 3 for triple
-let currentPlayer = parseInt(document.querySelector('[data-current-player]').dataset.currentPlayer); // 0 for Player A, 1 for Player B
+let currentPlayerElement = document.querySelector('[data-current-player]');
+let currentPlayer = currentPlayerElement ? parseInt(currentPlayerElement.dataset.currentPlayer) : 0; // 0 for Player A, 1 for Player B
 let isCountdownActive = false; // Track if countdown is active
 let action = '';
 let lastThrows = [];
@@ -24,7 +25,7 @@ function updatePlayerTurn() {
     const scoreElementId = currentPlayer === 0 ? "playerA_score" : "playerB_score";
     const scoreElement = document.getElementById(scoreElementId);
     const currentScore = parseInt(scoreElement.textContent, 10);
-    // Send the current score to the backend to fetch the score recommendation
+        // Send the current score to the backend to fetch the score recommendation
     fetch('/get_score_recommendation', {
         method: 'POST',
         headers: {
@@ -377,9 +378,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (Array.isArray(data.currentThrows)) {
             currentThrow = data.currentThrows.filter(t => t && t !== "-").length;
         }
-        updatePlayerTurn();
         updateDisplay(data)
         // ✅ Clear it so it doesn't persist across reloads
         sessionStorage.removeItem("loadedGameData");
     }
+    updatePlayerTurn();
 });

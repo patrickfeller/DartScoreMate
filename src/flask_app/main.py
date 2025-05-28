@@ -219,15 +219,16 @@ def save_game():
                     legs_played = %s,
                     first_to = %s,
                     wins_playerA = %s,
-                    wins_playerB = %s,
+                    wins_playerB = %s
                 WHERE game_id = %s
             """, (
                 game_mode, playerA, playerB,
                 scoreA, scoreB, active_player,
                 throw_1, throw_2, throw_3,
-                legs_played, loaded_game_id, first_to
+                legs_played, first_to, wins_playerA, wins_playerB, loaded_game_id
             ))
             print(f"Aktualisiertes Spiel-ID: {loaded_game_id}")
+
         else:
             # Insert new game
             cursor.execute("""
@@ -247,7 +248,10 @@ def save_game():
             print("Neues Spiel gespeichert")
 
         conn.commit()
-        return jsonify({"success": True, "game_id": new_game_id})
+        if loaded_game_id:
+            return jsonify({"success": True, "game_id": loaded_game_id})
+        else:
+            return jsonify({"success": True, "game_id": new_game_id})
 
     except Exception as e:
         print(f"Fehler beim Speichern: {str(e)}")
@@ -438,6 +442,23 @@ def get_score_prediction():
         return score, multiplier
     score_prediction = random_dart_score()
     return jsonify({"score": score_prediction[0], "multiplier": score_prediction[1]})
+
+@app.route('/get_score_recommendation', methods=["POST"])
+def get_score_recommendation():
+    # Get the incoming data (the current score)
+    data = request.get_json()  # This will be the JSON sent from the frontend
+    current_score = data.get('score')
+
+    if current_score:
+        # Get the recommendations based on the current score
+        recommendations = recommender.get_recommendation(current_score)
+
+        # Return the recommendations as a JSON response
+        return jsonify({'scoreRecommendation': recommendations})
+    else:
+        # If no score is provided, return an empty array or error message
+        return jsonify({'scoreRecommendation': 0}), 400
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
