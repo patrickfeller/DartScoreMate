@@ -224,7 +224,7 @@ class Leg:
     :param current_player: Index of starting player
     :type current_player: int
     """
-    def __init__(self, players, current_player): # is currnet_player index with 0 and 1 of len Leg correct?
+    def __init__(self, players, current_player):
         self.current_turn = Turn(players[current_player])
         self.turns = [self.current_turn]
         self.winner = None
@@ -351,6 +351,9 @@ class Player:
         """Reset the player's score to the initial format."""
         self.score = self.format
 
+    def reset_wins(self):
+        """Reset the player's win when new game."""
+        self.wins = 0
 
 class Game:
     """Manages the complete dart game session.
@@ -365,11 +368,26 @@ class Game:
         self.current_leg = None
         self.is_bust = False
         self.winner_index = None
+        self.game_over = False
+        self.game_history = []
         self.dart_score_basis_image_frames = {
             "camera_A": None, 
             "camera_B": None,
             "camera_C": None
             }
+        
+
+    def save_game_result(self):
+        """Save the current game result before starting a new game."""
+        game_result = {
+            'players': [player.name for player in self.players],
+            'format': self.format,
+            'first_to': self.first_to,
+            'legs_played': len(self.legs_played),
+            'final_score': [player.wins for player in self.players],
+            'winner': self.players[self.winner_index].name if self.winner_index is not None else None
+        }
+        self.game_history.append(game_result)
 
     def start_game(self, first_to, format, name_a, name_b):
         """Initialize a new game with the specified parameters.
@@ -383,6 +401,11 @@ class Game:
         :param name_b: Second player's name
         :type name_b: str
         """
+        # Save previous game if it exists
+        if self.playing and self.just_won:
+            self.save_game_result()
+
+        # reset game state
         self.first_to = first_to
         self.players = (Player(name_a, format), Player(name_b, format))   
         self.legs_played = []
@@ -392,6 +415,32 @@ class Game:
         self.update = True
         self.clear = False
         self.just_won = False
+        self.game_over = False 
+
+    def load_game(self, legs_played, current_throws, active_player, ):
+        for throw in current_throws:
+            if throw == "-":
+                dart = Dart(0,1,None)
+            else:
+                multiplier_map = {'S': 1, 'D': 2, 'T': 3}
+                multiplier = multiplier_map.get(throw[0], 1)  # Default to 1 if unknown
+                score = throw[1:]
+                if score=="Bull":
+                    score=25
+                else:
+                    score = int(score)
+                dart = Dart(score,multiplier,None)
+                self.current_leg.current_turn.dart(dart)
+                ## ---> need to update turns
+
+
+    def get_game_history(self):
+        """Return the history of all completed games.
+        
+        :return: List of dictionaries containing game results
+        :rtype: list[dict]
+        """
+        return self.game_history
 
     def dart(self, dart):
         """Process a dart throw in the current game.
@@ -413,12 +462,27 @@ class Game:
             if player.has_won():
                 self.current_leg.winner = player
                 player.wins += 1
-                self.winner_index = i  # Store the winning player's index
+                self.just_won = True
+                self.winner_index = i
+
+                if player.wins >= self.first_to:
+                    self.game_over = True
+                    self.playing = False
+                    self.reset_player_wins()
+                    return
+                
                 self.reset()
                 self.legs_played.append(self.current_leg)
                 self.current_leg = Leg(self.players, len(self.legs_played) % 2)
-                self.just_won = True
+                
     
+    def is_game_over(self):
+        """Return the game over status.
+        :return: True if the game is over, False otherwise
+        :rtype: bool
+        """
+        return self.game_over
+
     def get_scores(self):
         """Retrieve current turn's dart throws.
         
@@ -446,10 +510,8 @@ class Game:
         :return: List of current scores or -1 if game not active
         :rtype: list[int] or int
         """
-        if self.playing:
-            return [self.players[0].score, self.players[1].score]
-        else:
-            return -1
+        return [self.players[0].score, self.players[1].score]
+
     
     def new_dart(self, dart):
         """Register a new dart throw in the game.
@@ -493,13 +555,15 @@ class Game:
     
     def has_just_won(self):
         """
-        checks if the player just won
-        :return True/False from func just_won
-        :return player index that just won
+        Check if a player has just won and return game status
+        :return: (just_won, winner_index, playing)
+        :rtype: tuple[bool, int, bool]
         """
         result = self.just_won
-        self.just_won = False
-        return result, self.winner_index  # Return stored winner index
+        winner = self.winner_index
+        playing = self.playing
+        self.just_won = False  # Reset for next check
+        return result, winner, playing
     
     def is_clear(self):
         """Check if the board needs to be cleared and reset the clear flag.
@@ -525,6 +589,11 @@ class Game:
         self.update = False
         return result
     
+    def reset_player_wins(self):
+        """Reset all players' wins to 0."""
+        for player in self.players:
+            player.reset_wins()
+
     def reset(self):
         """Reset all players' scores to their initial values."""
         for player in self.players:

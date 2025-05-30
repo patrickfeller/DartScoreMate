@@ -6,11 +6,14 @@
     <div class="player-box">
         <h3>Player A</h3>
         <p><span id="playerA_name">{{ playerA }}</span>: <span id="playerA_score">{{ scoreA }}</span></p>
+        <p><span id="wins_playerA">{{  wins_playerA  }} wins of {{  first_to  }}</span></p>
     </div>
     <div class="player-box">
         <h3>Player B</h3>
         <p><span id="playerB_name">{{ playerB }}</span>: <span id="playerB_score">{{ scoreB }}</span></p>
+        <p><span id="wins_playerB">{{  wins_playerB  }} wins of {{  first_to  }}</span></p>
     </div>
+<div data-current-player="{{ current_player }}"></div>
 </div>
 
 <div class="throws">     
@@ -59,6 +62,7 @@
             </div>
         </div>
     </div>
+
     <div id="picture-view" style="display: none;">
         <img src="{{ url_for('static', filename='images/dartboard.png') }}" alt="Dartboard">
     </div>

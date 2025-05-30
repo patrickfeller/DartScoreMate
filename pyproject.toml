@@ -15,6 +15,7 @@ dependencies = [
     "mysql-connector-python>=9.2.0",
     "scikit-image>=0.25.2",
     "matplotlib>=3.10.3",
+    "chromedriver-autoinstaller>=0.6.4",
 ]
 
 # add these lines because otherwise, uv will treat our flask files as libraries and throw an error
