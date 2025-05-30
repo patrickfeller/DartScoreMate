@@ -55,7 +55,7 @@ It uses camera-based score detection and provides recommendations for better pla
 - ✅ **Flask + HTML/CSS/JS Frontend:** Landing page, main game screen, board status view, undo button, save-game button, winning animations, handling of legs, and more  
 - ✅ **Streamlit Camera App:** Live camera capture and captioning tool  
 - ✅ **Automated Tests:** Unit & integration tests in GitLab CI  
-- ✅ **Docker Support:** One‑command launch via Docker Compose, includes camera passthrough  
+- ✅ **Docker Support:** One‑command launch via Docker Compose, includes camera passthrough  (last functionality check on `2025-05-30`)
 - ✅ **Chatbot Integration:** Groq‑powered recommendation bot  
 - ⚠️ **Scoring Recommendations:** score suggestions  
 - ✅ **OOP & Design Patterns:** Modular, maintainable code architecture  
