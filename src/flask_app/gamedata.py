@@ -1,4 +1,26 @@
-# copied from gitProject, not all of this should be needed
+"""
+This module defines the logic for managing a dart game, including player management, scoring, turns, legs, and game sessions. 
+It also handles camera modes and image frame buffering for dart score detection.
+
+Classes:
+--------
+CameraMode (Enum): 
+    Represents the operational modes of the camera system (OFF, ON, POSITIONING, GAME).
+Admin: 
+    Manages administrative settings and camera control for the dart system.
+Dart: 
+    Represents a single dart throw, including score, multiplier, and position coordinates.
+Bust (Dart): 
+    Subclass of Dart representing a "bust" (invalid score) situation in darts.
+Turn: 
+    Manages a single player's turn, tracking up to three darts, handling scoring, busts, and image frame management for dart detection.
+Leg: 
+    Represents one leg of a dart game, managing turns between players until a winner is determined.
+Player:
+    Represents a player, tracking name, score, wins, and providing scoring logic.
+Game: 
+    Manages the complete dart game session, including game flow, player turns, scoring, history, and camera image frame management.
+"""
 
 from enum import Enum
 
@@ -115,13 +137,15 @@ class Turn:
     def __init__(self, player):
         self.darts = []
         self.player = player
+        # Holds the last and current image frames for each camera ('camera_A', 'camera_B', 'camera_C') used for dart scores prediction
         self.dart_score_image_frames = {
             "camera_A": {"last_frame": None, "new_actual_frame": None}, 
             "camera_B": {"last_frame": None, "new_actual_frame": None},
             "camera_C": {"last_frame": None, "new_actual_frame": None}
             }
-        self.__dart_score_image_frame_buffer = None
-    
+        self.__dart_score_image_frame_buffer = None # Buffer for temporary storing image frames related to dart scoring
+
+
     def dart(self, dart):
         """Add a new dart throw to the turn.
         
@@ -178,6 +202,18 @@ class Turn:
 
     
     def update_current_dart_score_raw_image_frames(self, raw_dart_frame_camera_A, raw_dart_frame_camera_B, raw_dart_frame_camera_C):
+        """
+        Updates the raw image frames for dart score detection from three cameras.
+        This method shifts the current 'new_actual_frame' to 'last_frame' for each camera (A, B, and C),
+        and then sets the 'new_actual_frame' to the provided raw image frames.
+        
+        :param raw_dart_frame_camera_A: The raw image frame captured from camera A.
+        :type raw_dart_frame_camera_A: numpy.ndarray
+        :param raw_dart_frame_camera_B: The raw image frame captured from camera B.
+        :type raw_dart_frame_camera_B: numpy.ndarray
+        :param raw_dart_frame_camera_C: The raw image frame captured from camera C.
+        :type raw_dart_frame_camera_C: numpy.ndarray
+        """
         self.dart_score_image_frames["camera_A"]["last_frame"] = self.dart_score_image_frames["camera_A"]["new_actual_frame"]
         self.dart_score_image_frames["camera_B"]["last_frame"] = self.dart_score_image_frames["camera_B"]["new_actual_frame"]
         self.dart_score_image_frames["camera_C"]["last_frame"] = self.dart_score_image_frames["camera_C"]["new_actual_frame"]
@@ -186,7 +222,13 @@ class Turn:
         self.dart_score_image_frames["camera_B"]["new_actual_frame"] = raw_dart_frame_camera_B
         self.dart_score_image_frames["camera_C"]["new_actual_frame"] = raw_dart_frame_camera_C
 
+
     def update_current_dart_score_raw_image_frames_from_buffer(self):
+        """
+        Updates the current dart score image frames for each camera ("camera_A", "camera_B", "camera_C")
+        by moving the "new_actual_frame" to "last_frame" and replacing "new_actual_frame" with the
+        corresponding frame from the internal buffer. After updating, the buffer is cleared.
+        """
         try:
             self.dart_score_image_frames["camera_A"]["last_frame"] = self.dart_score_image_frames["camera_A"]["new_actual_frame"]
             self.dart_score_image_frames["camera_B"]["last_frame"] = self.dart_score_image_frames["camera_B"]["new_actual_frame"]
@@ -202,6 +244,16 @@ class Turn:
             raise e
 
     def set_dart_score_image_frame_buffer(self, raw_dart_frame_camera_A, raw_dart_frame_camera_B, raw_dart_frame_camera_C):
+        """
+        Sets the dart score image frame buffer to a dictionary with keys 'camera_A', 'camera_B', and 'camera_C' containing the raw image frames from three cameras.
+        
+        :param raw_dart_frame_camera_A: The raw image frame captured from camera A.
+        :type raw_dart_frame_camera_A: numpy.ndarray
+        :param raw_dart_frame_camera_B: The raw image frame captured from camera B.
+        :type raw_dart_frame_camera_B: numpy.ndarray
+        :param raw_dart_frame_camera_C: The raw image frame captured from camera C.
+        :type raw_dart_frame_camera_C: numpy.ndarray
+        """
         self.__dart_score_image_frame_buffer = {
             "camera_A": raw_dart_frame_camera_A, 
             "camera_B": raw_dart_frame_camera_B,
@@ -209,15 +261,31 @@ class Turn:
             }
         
     def check_dart_score_image_frame_buffer_is_None(self):
+        """
+        Checks if the dart score image frame buffer is None.
+        
+        :return: True if the dart score image frame buffer is None, False otherwise.
+        :rtype: bool
+        """
         return self.__dart_score_image_frame_buffer is None
     
     def __clear_dart_score_image_frame_buffer(self):
+        """
+        Clears the dart score image frame buffer by setting it to None.
+        """
         self.__dart_score_image_frame_buffer = None
     
     def __undo_last_dart_score_image_frame(self):
+        """
+        Reverts the 'new_actual_frame' for each camera ('camera_A', 'camera_B', 'camera_C')
+        to the previous 'last_frame' in the dart_score_image_frames dictionary.
+        This method is used to undo the last update to the dart score image frames,
+        effectively restoring the previous state for each camera.
+        """
         self.dart_score_image_frames["camera_A"]["new_actual_frame"] = self.dart_score_image_frames["camera_A"]["last_frame"]
         self.dart_score_image_frames["camera_B"]["new_actual_frame"] = self.dart_score_image_frames["camera_B"]["last_frame"]
         self.dart_score_image_frames["camera_C"]["new_actual_frame"] = self.dart_score_image_frames["camera_C"]["last_frame"]
+
 
 class Leg:
     """Represents one leg of a dart game.
@@ -375,6 +443,7 @@ class Game:
         self.winner_index = None
         self.game_over = False
         self.game_history = []
+        # Contains the initial dart score raw image frames for each camera, captured at the start of the game
         self.dart_score_basis_image_frames = {
             "camera_A": None, 
             "camera_B": None,
@@ -621,10 +690,26 @@ class Game:
         return False
     
     def initialize_basis_dart_score_raw_image_frames(self, raw_dart_frame_camera_A, raw_dart_frame_camera_B, raw_dart_frame_camera_C):
+        """
+        Initializes the basis dart score raw image frames for cameras A, B, and C.
+         
+        :param raw_dart_frame_camera_A: The raw image frame captured from camera A.
+        :type raw_dart_frame_camera_A: numpy.ndarray
+        :param raw_dart_frame_camera_B: The raw image frame captured from camera B.
+        :type raw_dart_frame_camera_B: numpy.ndarray
+        :param raw_dart_frame_camera_C: The raw image frame captured from camera C.
+        :type raw_dart_frame_camera_C: numpy.ndarray
+        """
         self.dart_score_basis_image_frames["camera_A"] = raw_dart_frame_camera_A
         self.dart_score_basis_image_frames["camera_B"] = raw_dart_frame_camera_B
         self.dart_score_basis_image_frames["camera_C"] = raw_dart_frame_camera_C
 
 
     def get_basis_dart_score_raw_image_frames(self):
+        """
+        Returns the dictionary of raw image frames representing the basis dart score.
+
+        :return: A dictionary containing the raw image frames for each camera used for the basis dart score.
+        :rtype: dict
+        """
         return self.dart_score_basis_image_frames
