@@ -16,7 +16,7 @@ import platform
 from groq import Groq
 import os
 import ast
-from detection import take_frame_of_dartboard_with_camera
+from detection import take_frame_of_dartboard_with_camera, calculating_dart_deviation_of_camera_perspectives, calculating_dart_scoring_points
 from Camera_ID import Camera_ID
 
 # Load environment variables
@@ -486,6 +486,7 @@ def get_score_prediction():
         camera_id_C = int(session.get("camera_id_C", Camera_ID.C.value))
         print(f"Camera IDs get_score_prediction: {camera_id_A}, {camera_id_B}, {camera_id_C}")
 
+        # should only in the first throw be None, so that the basis dartboard frame is used
         if gameRef.current_leg.current_turn.dart_score_image_frames["camera_A"]["new_actual_frame"] is None:
             basis_dartboard_frame_cameraf_a = gameRef.get_basis_dart_score_raw_image_frames()["camera_A"]
             basis_dartboard_frame_cameraf_b = gameRef.get_basis_dart_score_raw_image_frames()["camera_B"]
@@ -506,22 +507,6 @@ def get_score_prediction():
         gameRef.current_leg.current_turn.set_dart_score_image_frame_buffer(dartboard_frame_camera_A, dartboard_frame_camera_B, dartboard_frame_camera_C)
 
         return calculating_dart_scoring_points(gradient_camera_a, gradient_camera_b, gradient_camera_c)
-
-
-    def random_dart_score():
-        # Choose a base score from 0, 1–20, or 25
-        score = random.choice([0] + list(range(1, 21)) + [25])
-        
-        # Determine allowed multiplier based on score
-        if score == 0:
-            multiplier = 1
-        elif score == 25:
-            multiplier = random.choice([1, 2])
-        else:
-            multiplier = random.choice([1, 2, 3])
-        
-        # Return JSON-serializable result
-        return score, multiplier
 
     score_prediction = image_processed_dart_score()
 
