@@ -46,7 +46,7 @@ It uses camera-based score detection and provides recommendations for better pla
   - Live-View of Dart Board (static) 
 
   ### Advanced Features  
-  - Detect Score from Image 
+  - Detect Score from Image (only available in branch `feature_functionally_score_detection`)
   - Personalized Shot Recommendations 
 
 </details>
@@ -61,7 +61,7 @@ It uses camera-based score detection and provides recommendations for better pla
 - ✅ **OOP & Design Patterns:** Modular, maintainable code architecture  
 - ✅ **Save/Load Games:** Game saving complete; load functionality in progress  
 - ✅ **Presentation** for May
-- ✅ **Image‑Based Score Prediction:** mathematical model for predicting scores from photos  
+- ✅ **Image‑Based Score Prediction:** mathematical model for predicting scores from photos  (only available in branch `feature_functionally_score_detection`)
 
 ## Grading 
 <details>
@@ -249,6 +249,11 @@ We follow a **conventional commit** style to make our commit history clear and o
     4. run the streamlit app via `streamlit run src/pic_snap/app.py`
  5. **To start the app from Docker:** 
     1. run `docker-compose up --build`
+ 6. **To use the Detect Score from Image Functionality**
+    1. Select the correct cameras on the board status site
+    - Camera A - left from D20
+    - Camera B - right from D20
+    - Camera C - looks at 6
 </details>
 <details>
 <summary>🐋 Docker Setup</summary>
