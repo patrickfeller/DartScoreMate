@@ -208,7 +208,7 @@ class Turn:
             }
         
     def check_dart_score_image_frame_buffer_is_None(self):
-        return self.__dart_score_image_frame_buffer == None
+        return self.__dart_score_image_frame_buffer is None
     
     def __clear_dart_score_image_frame_buffer(self):
         self.__dart_score_image_frame_buffer = None

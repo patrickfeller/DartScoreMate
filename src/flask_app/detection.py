@@ -18,24 +18,29 @@ def calculating_dart_scoring_points(gradient_camera_a, gradient_camera_b, gradie
     cCameraY = 345
 
     if gradient_camera_a != "Hand" and gradient_camera_b != "Hand" and gradient_camera_c != "Hand":
-        points = []
+        try:
+           points = []
 
-        points.append(intersect(aCameraX, aCameraY, gradient_camera_a, bCameraX, bCameraY, gradient_camera_b))
-        points.append(intersect(aCameraX, aCameraY, gradient_camera_a, cCameraX, cCameraY, gradient_camera_c))
-        points.append(intersect(bCameraX, bCameraY, gradient_camera_b, cCameraX, cCameraY, gradient_camera_c))
+           points.append(intersect(aCameraX, aCameraY, gradient_camera_a, bCameraX, bCameraY, gradient_camera_b))
+           points.append(intersect(aCameraX, aCameraY, gradient_camera_a, cCameraX, cCameraY, gradient_camera_c))
+           points.append(intersect(bCameraX, bCameraY, gradient_camera_b, cCameraX, cCameraY, gradient_camera_c))
 
-        #print(f"points: {points}")
+           #print(f"points: {points}")
 
-        xAvg = (sum([i[0] for i in points]))/len(points)
-        yAvg = (sum([i[1] for i in points]))/len(points)
+           xAvg = (sum([i[0] for i in points]))/len(points)
+           yAvg = (sum([i[1] for i in points]))/len(points)
 
-        #print(f"calculated Average points: xAvg:{xAvg}; yAvg:{yAvg}")
+           #print(f"calculated Average points: xAvg:{xAvg}; yAvg:{yAvg}")
 
-        dart_score = score_dart(xAvg, yAvg)
+           dart_score = score_dart(xAvg, yAvg)
 
-        #print(f"Dart Score: {dart_score.to_string()}")
+           #print(f"Dart Score: {dart_score.to_string()}")
 
-        return dart_score.score, dart_score.multiplier
+           return dart_score.score, dart_score.multiplier
+        
+        except:
+           #print("Error in calculating dart scoring points. Returning 0, 0 as overthrown.")
+           return 0, 0
     
     else:
         return 0,0
@@ -118,20 +123,19 @@ def calculating_dart_deviation_of_camera_perspectives(basis_dart_frame, detect_d
     #print("image processing")
     final_ksize, thresh_ksize = image_processing.image_processing(blurred_ksize, camera_id)
 
-    #print("find dart tip Gradient - final image")
-    tipfinal_ksize = dart_tip_processing.dart_tip_processing(final_ksize)
-
-    #print("find dart tip Gradient - thresh image")
-    tipthresh_ksize = dart_tip_processing.dart_tip_processing(thresh_ksize)
-
     gradient = 0
 
-    if tip_finalprocessedimage:
-        gradient_image = tipfinal_ksize
-    else:
-        gradient_image = tipthresh_ksize
 
-    if gradient_image == "Hand":
+    if tip_finalprocessedimage:
+        #print("find dart tip Gradient - final image")
+        gradient_image = dart_tip_processing.dart_tip_processing(final_ksize)
+    else:
+        #print("find dart tip Gradient - thresh image")
+        gradient_image = dart_tip_processing.dart_tip_processing(thresh_ksize)
+
+
+    if gradient_image == "Hand" or gradient_image == 0:
+        #print("No Dart Tip found")
         return gradient_image
     
     if camera_id == "A":

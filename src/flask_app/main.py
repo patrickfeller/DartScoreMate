@@ -89,7 +89,6 @@ def video_feed():
     return Response(generate_frames(camera_id), 
                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
-
 # Route when Play-button get pressed
 @app.route("/new_game", methods=["POST"])
 def new_game():
