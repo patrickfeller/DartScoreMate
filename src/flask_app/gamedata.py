@@ -167,6 +167,7 @@ class Turn:
             last_dart = self.darts.pop()
             if not last_dart.is_bust():
                 self.player.undo_dart(last_dart)
+                self.__undo_last_dart_score_image_frame()
             else:
                 # If it was a bust, restore all previous darts
                 for dart in self.darts:
@@ -213,6 +214,10 @@ class Turn:
     def __clear_dart_score_image_frame_buffer(self):
         self.__dart_score_image_frame_buffer = None
     
+    def __undo_last_dart_score_image_frame(self):
+        self.dart_score_image_frames["camera_A"]["new_actual_frame"] = self.dart_score_image_frames["camera_A"]["last_frame"]
+        self.dart_score_image_frames["camera_B"]["new_actual_frame"] = self.dart_score_image_frames["camera_B"]["last_frame"]
+        self.dart_score_image_frames["camera_C"]["new_actual_frame"] = self.dart_score_image_frames["camera_C"]["last_frame"]
 
 class Leg:
     """Represents one leg of a dart game.
