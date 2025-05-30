@@ -82,6 +82,14 @@ def generate_frames(camera_id):
     finally:
         camera.release()
 
+# Routing for video feed
+@app.route('/video_feed')
+def video_feed():
+    camera_id = request.args.get('camera_id', default=0, type=int)
+    return Response(generate_frames(camera_id), 
+                   mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
 # Route when Play-button get pressed
 @app.route("/new_game", methods=["POST"])
 def new_game():
