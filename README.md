@@ -8,9 +8,6 @@
   - [Features](#features)
     - [Advanced Features](#advanced-features)
   - [Current Status](#current-status)
-  - [Grading](#grading)
-    - [Current estimated points are marked in 🔵 blue.](#current-estimated-points-are-marked-in--blue)
-  - [Authors and acknowledgment](#authors-and-acknowledgment)
   - [Links](#links)
 - [Project status](#project-status)
 - [🌳 Branches and Commits](#-branches-and-commits)
@@ -28,7 +25,7 @@
     - [🍎 macOS](#-macos)
   - [👥 Contributors](#-contributors)
   - [🚦 Status \& Roadmap](#-status--roadmap)
-  - [🗓 Meeting History](#-meeting-history) 
+
 
 ## 🔍 About the Project
 DartScoreMate is a web-based application for tracking and enhancing dart games in real-time.  
@@ -51,6 +48,7 @@ It uses camera-based score detection and provides recommendations for better pla
 
 </details>
 
+
 ## Current Status
 - ✅ **Flask + HTML/CSS/JS Frontend:** Landing page, main game screen, board status view, undo button, save-game button, winning animations, handling of legs, and more  
 - ✅ **Streamlit Camera App:** Live camera capture and captioning tool  
@@ -63,64 +61,19 @@ It uses camera-based score detection and provides recommendations for better pla
 - ✅ **Presentation** for May
 - ✅ **Image‑Based Score Prediction:** mathematical model for predicting scores from photos  (only available in branch `feature_functionally_score_detection`)
 
-## Grading 
-<details>
-  <summary>Click to expand</summary>
-
-  ### Current estimated points are marked in 🔵 blue.
-  - OOP & Framework (50) 🔵45
-  - Unittests (5) 🔵5
-  - Requirements / Docker (10) 🔵9
-  - Documentation (10) 🔵9
-  - Gitlab (10) 🔵10
-  - Presentation (15) 🔵15
-
-  ❌ no hand-in with just one file  
-  ❌ meaningless commit-messages: use standard words (FIX, FEAT, DOCS,...) and effective description  
-  ✅ good code logic (design patterns, classes, ...)  
-  ✅ monitor package dependencies (conda + uv/requirements.txt)  
-  ✅ code documentation (docstrings, comments, ...)  
-  ✅ Unittests: best practice = one per function  
-  ✅ Presentation is on **May** $\mathbf{16^{th}}$ with 80-90% of project complete.
-
-## Authors and acknowledgment
-**Patrick Feller**
-
-make first flask environment and general game-logic 
-
-**Chris Lehmann**
-image-based score detection (harder then expected)
-
-
-
-**Kathrin Lindauer**
-SQL
-
-
-
-**Ana Orkić**
-CSS
-
-
-**Daniel Hillebrand**
-Project Management, Docker, Gitlab, Unittests, SQL
-</details>
 
 ## Links
-* [Moodle-Course Softwaredevelopment II](https://weblearn.fh-kufstein.ac.at/course/view.php?id=2643)
-* [Darts Gitlab Project Inspiration](https://github.com/TheAlgorithms/Dart)
-[📘 Moodle Course – Softwaredevelopment II](https://weblearn.fh-kufstein.ac.at/course/view.php?id=2643)  
 [🎯 Dart GitHub Inspiration Project](https://github.com/TheAlgorithms/Dart)
 
 
 # Project status 
-First stable version of app is rolled out. Now working on the presentation for Mid-May.
+First stable version of app is rolled out. But we faced some limitation of the application that need to be improved / updated:
+* score detection needs a calibration, because minimal differences in the camaera setup are leed to miss detection
+* score detection is computationally intensive and takes too long
 
 # 🌳 Branches and Commits
 <details>
   <summary>🌿 Branches</summary>
-
-
 
 We use a structured Git workflow to keep our codebase stable and organized.
 
@@ -198,6 +151,7 @@ We follow a **conventional commit** style to make our commit history clear and o
   Example: `STYLE: Fix indentation in authentication module`
 </details>
 
+
 # 🧪 Installation & Setup
 
 <details>
@@ -260,11 +214,13 @@ We follow a **conventional commit** style to make our commit history clear and o
 
 You can run this project in Docker across Windows, Linux, or macOS, and most of the app's functionalities will work just fine. However, some features (such as those requiring a **live camera feed**) may face **limitations** depending on your OS and hardware access—especially on Windows due to **WSL** constraints.
 
+
 ## ⚠️ Which App Features require Live Camera Feed?
 
 1. **Board Status**: Shows live image of dartboard
 2. **Score Prediction**: Get score prediction of current throw based on live dartboard images.
 3. **Pic Snap**: A small streamlit app to take pictures of your dartboard and save them to a directory. Mainly useful for training a score-prediction algorithm. 
+
 
 ## ✅ How to Check if Your Setup Supports the Camera:
 
@@ -311,28 +267,8 @@ macOS does not allow Docker containers direct access to USB cameras due to virtu
 </details>
 
 
-## 👥 Contributors
-- Patrick Feller – Flask Setup, OOP, Design Patterns, Streamlit App, 3D-Prints  
-- Chris Lehmann – Score Prediction, Unit Tests, GitLab
-- Kathrin Lindauer – SQL, README, Chat History for Chatbot
-- Ana Orkić – CSS, Winning Animation, Chatbot, Meeting Records, Presentation  
-- Daniel Hillebrand – PM, Docker, GitLab, Tests, Support 
-- Lyudmila Shamina - README (April 2024)
-
-
 ## 🚦 Status & Roadmap
 - 🎉 **Project Kickoff:** Early March  
 - 📌 **First Deployment**: April 1 (v1)  
 - 🗓 **Final Presentation**: May 16 (95% complete)  
 - 🚀 **App Launch**: End of May
-
-
-## 🗓 Meeting History
-- 2025-03-10 – Kickoff  
-- 2025-03-17 – Planning  
-- 2025-03-24 – Development
-- 2025-03-31 - Development
-- 2025-04-14 - V1-Launch, Review
-- 2025-04-28 - KVPs
-- 2025-05-12 - presentation review, final remarks
-
